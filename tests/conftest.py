@@ -2,7 +2,7 @@ import pytest
 import sys
 from sqlalchemy.orm import sessionmaker
 sys.path.append("..")
-from db.session import Session, db_engine, Base
+from db.session import Session, engine, Base
 
 @pytest.fixture(scope='session')
 def db():

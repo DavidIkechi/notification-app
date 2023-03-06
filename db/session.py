@@ -1,14 +1,29 @@
 # for creating sessions
 from sqlalchemy.orm import sessionmaker, declarative_base
-from .connection import get_engine
+from sqlalchemy.pool import StaticPool, NullPool
+from sqlalchemy import create_engine
+from .connection import get_db_conn_string
+import os
+from dotenv import load_dotenv
 
-db_engine = get_engine()
+load_dotenv()
 
-Session = sessionmaker(
-    auto_commit=False,
-    auto_flush=False,
-    bind=db_engine
-    ) 
+if os.environ['TESTING']:
+    DATABASE_URL = "sqlite://"
+    poolclass = StaticPool
+    pre_ping = False
+    connect_args = {"check_same_thread": False}
+else:
+    DATABASE_URL = get_db_conn_string()
+    poolclass = NullPool
+    pre_ping = True
+    connect_args = {}
+  
+engine = create_engine(DATABASE_URL, pool_pre_ping = pre_ping,
+                       poolclass = poolclass, connect_args = connect_args)  
+
+
+Session = sessionmaker(auto_commit=False, auto_flush=False, bind=engine) 
 
 def get_db():
     db = Session()
@@ -16,5 +31,5 @@ def get_db():
         yield db
     finally:
         db.close()
-
+        
 Base = declarative_base()
