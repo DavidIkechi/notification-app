@@ -2,7 +2,6 @@
 from sqlalchemy.orm import sessionmaker, declarative_base
 from .connection import get_engine
 
-
 db_engine = get_engine()
 
 Session = sessionmaker(
