@@ -9,17 +9,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 if os.environ['TESTING']:
-    DATABASE_URL = "sqlite://"
+    database_url = "sqlite://"
     poolclass = StaticPool
     pre_ping = False
     connect_args = {"check_same_thread": False}
 else:
-    DATABASE_URL = get_db_conn_string()
+    database_url = get_db_conn_string()
     poolclass = NullPool
     pre_ping = True
     connect_args = {}
   
-engine = create_engine(DATABASE_URL, pool_pre_ping = pre_ping,
+engine = create_engine(database_url, pool_pre_ping = pre_ping,
                        poolclass = poolclass, connect_args = connect_args)  
 
 
