@@ -14,7 +14,7 @@ def db():
     
 # This is called for each test function in the test files.     
 @pytest.fixture(scope='function')
-def session(db):
+def get_session(db):
     connection = db.connect()
     transaction = connection.begin()
     session = sessionmaker(bind=connection)()
