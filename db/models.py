@@ -1,59 +1,38 @@
 # for models.
 from .session import Base
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP
 from sqlalchemy.orm import Session
 import uuid
-
+from datetime import datetime
+from sqlalchemy.sql import text
 class Client(Base):
     __tablename__ = "client"
-    id = Column(Integer, primary_key = True, index = True)
-    slug = Column(String(100), nullable = False)
-    client_key = Column(String(36), unique = True, nullable = False, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    slug = Column(String(100), unique=True, nullable=False, index=True)
+    client_key = Column(String(250), unique=True, nullable=False, index=True)
+    status = Column(Boolean, default=True, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True),
+                        default = datetime.utcnow(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        default=datetime.utcnow(), 
+                        onupdate=datetime.utcnow(), nullable=False)
     
-    # class method to validate the key.
-    @classmethod
-    def validate_key(cls, uuid_string):
-        try:
-            uuid_obj = uuid.UUID(uuid_string, version=4)
-        except ValueError:
-            return False
-        return str(uuid_obj) == uuid_string
+    # static method to check if the key exists
+    @staticmethod
+    def check_key(db: Session, client_key):
+        return db.query(Client).filter_by(client_key = client_key).first()
     
-    # class method to check if the key exists
-    @classmethod
-    def check_key(cls, db: Session, client_key):
-        check_key = db.query(cls).filter_by(client_key = client_key).first()
-        if check_key:
-            # it means user already exists.
-            return True
-        return False
-    
-    # class method to create client.   
-    @classmethod
-    def create_client(cls, db: Session, slug, client_key):
+    # static method to create client.   
+    @staticmethod
+    def create_client(db: Session, slug, client_key):
         # first check if the client_key exists.
-        if cls.check_key(db, client_key) is False and cls.validate_key(client_key):
-        # create the new client.
-            new_cient = cls(slug = slug, client_key = client_key)
-            db.add(new_cient)
-            db.commit()
-            
-            return new_cient
-        
-        return None
-    
-    @classmethod
-    def delete_client(cls, db: Session, client_key):
-        # first check if the client key exists.
-        if cls.check_key(db, client_key):
-            remove_client = db.query(cls).filter_by(client_key = client_key).delete()
-            db.commit()  
-            return True
+        if Client.check_key(db, client_key) is None:
+            return Client(slug = slug, client_key = client_key)  
         return False
     
-    @classmethod
-    def retrieve_client(cls, db: Session):
-        return db.query(cls).all()
+    @staticmethod
+    def retrieve_client(db: Session):
+        return db.query(Client).all()
     
             
             

@@ -7,6 +7,8 @@ import os
 from alembic import context
 sys.path.append("..")
 from db import models
+from db.connection import get_db_conn_string
+
 
 
 # this is the Alembic Config object, which provides
@@ -28,15 +30,6 @@ target_metadata = models.Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-def get_url():
-    return "mysql+mysqlconnector://%s:%s@%s/%s" % (
-        os.getenv("DB_NOTI_USER"),
-        os.getenv("DB_NOTI_PASSWORD"),
-        os.getenv("DB_NOTI_HOST"),
-        os.getenv("DB_NOTI_NAME"),
-    )
-
-
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -49,7 +42,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = get_url()
+    url = get_db_conn_string()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -69,7 +62,7 @@ def run_migrations_online() -> None:
 
     """
     
-    connectable = create_engine(get_url())
+    connectable = create_engine(get_db_conn_string())
     
     with connectable.connect() as connection:
         context.configure(
