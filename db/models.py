@@ -19,20 +19,25 @@ class Client(Base):
     
     # static method to check if the key exists
     @staticmethod
-    def check_key(db: Session, client_key):
+    def check_single_key(db: Session, client_key):
         return db.query(Client).filter_by(client_key = client_key).first()
     
     # static method to create client.   
     @staticmethod
-    def create_client(db: Session, slug, client_key):
-        # first check if the client_key exists.
-        if Client.check_key(db, client_key) is None:
-            return Client(slug = slug, client_key = client_key)  
-        return False
+    def create_single_client(db: Session, slug, client_key):
+        return Client(slug = slug, client_key = client_key)  
     
     @staticmethod
-    def retrieve_client(db: Session):
+    def retrieve_all_client(db: Session):
         return db.query(Client).all()
+    
+    @staticmethod
+    def update_single_client(db: Session, client_key, client_data):
+        return (
+            db.query(Client).filter_by(client_key = client_key).update(client_data) 
+            and db.query(Client).filter_by(client_key=client_key).first() 
+            or None
+        )
     
             
             
