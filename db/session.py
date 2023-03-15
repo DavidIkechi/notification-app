@@ -23,7 +23,7 @@ engine = create_engine(database_url, pool_pre_ping = pre_ping,
                        poolclass = poolclass, connect_args = connect_args)  
 
 
-Session = sessionmaker(auto_commit=False, auto_flush=False, bind=engine) 
+Session = sessionmaker(autocommit=False, autoflush=False, bind=engine) 
 
 def get_db():
     db = Session()

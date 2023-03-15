@@ -1,7 +1,7 @@
 # for models.
 from .session import Base
 from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 import uuid
 from datetime import datetime
 from sqlalchemy.sql import text
@@ -29,10 +29,10 @@ class Client(Base):
     
     @staticmethod
     def retrieve_all_client(db: Session):
-        return db.query(Client).all()
+        return db.query(Client).options(load_only(Client.slug, Client.status)).all()
     
     @staticmethod
-    def update_single_client(db: Session, client_key, client_data):
+    def update_single_client(db: Session, client_key, client_data): 
         return (
             db.query(Client).filter_by(client_key = client_key).update(client_data) 
             and db.query(Client).filter_by(client_key=client_key).first() 
