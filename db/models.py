@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session, load_only
 import uuid
 from datetime import datetime
 from sqlalchemy.sql import text
+
 class Client(Base):
     __tablename__ = "client"
     id = Column(Integer, primary_key=True, index=True)
@@ -20,7 +21,7 @@ class Client(Base):
     # static method to check if the key exists
     @staticmethod
     def check_single_key(db: Session, client_key):
-        return db.query(Client).filter_by(client_key = client_key).first()
+        return Client.get_client_object(db).filter_by(client_key = client_key).first()
     
     # static method to create client.   
     @staticmethod
@@ -29,15 +30,19 @@ class Client(Base):
     
     @staticmethod
     def retrieve_all_client(db: Session):
-        return db.query(Client).options(load_only(Client.slug, Client.status)).all()
+        return Client.get_client_object(db).options(load_only(Client.slug, Client.status)).all()
     
+    # get the client object
+    def get_client_object(db: Session):
+        return db.query(Client)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+    # static method
     @staticmethod
     def update_single_client(db: Session, client_key, client_data): 
-        return (
-            db.query(Client).filter_by(client_key = client_key).update(client_data) 
-            and db.query(Client).filter_by(client_key=client_key).first() 
-            or None
-        )
+        client = Client.check_single_key(db, client_key)
+        for key, value in client_data.items():
+            setattr(client, key, value)
+        return client
     
             
             
