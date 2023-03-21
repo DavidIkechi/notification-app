@@ -197,7 +197,7 @@ def test_reactivate_client(get_session):
     
     assert created_client is not None
     # ensure it was created.
-    client_response = client_instance.patch(f"/clients/reactivate/{client.client_key}")
+    client_response = client_instance.patch(f"/clients/reactivate/1")
     assert client_response.status_code == 200
     assert client_response.json()['detail']['status'] == True
     assert client_response.json()['status'] == 1
@@ -219,9 +219,9 @@ def test_reactivate_client_error(get_session):
     
     assert created_client is not None
     # ensure it was created.
-    client_response = client_instance.patch("/clients/reactivate/tttttt")
+    client_response = client_instance.patch("/clients/reactivate/5")
     assert client_response.status_code == 400
-    assert client_response.json()['detail'] == "Client with such key does not exists"
+    assert client_response.json()['detail'] == "Client with such id does not exists"
     assert client_response.json()['status'] == 0
     
 def test_get_all_clients(get_session):
@@ -249,7 +249,7 @@ def test_get_all_clients(get_session):
     get_session.commit()
     # page 1 with 1 rcords per page
     client_response = client_instance.get("/clients/clients", params={"page":1, "page_size":1})
-    assert len(client_response.json()['detail'])== 1
+    assert len(client_response.json()['detail']['items'])== 1
 
     
     

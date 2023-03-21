@@ -28,8 +28,8 @@ notification_app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-# create the tables.
-models.Base.metadata.create_all(engine)
+# # create the tables.
+# models.Base.metadata.create_all(engine)
 
 # allowed host.
 origins =[]

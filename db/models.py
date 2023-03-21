@@ -18,6 +18,16 @@ class Client(Base):
                         default=datetime.utcnow(), 
                         onupdate=datetime.utcnow(), nullable=False)
     
+    # get the client object
+    @staticmethod
+    def get_client_object(db: Session):
+        return db.query(Client)
+                               
+    # get the client by ID
+    @staticmethod
+    def get_client_by_id(db: Session, id: int):
+        return Client.get_client_object(db).get(id)
+        
     # static method to check if the key exists
     @staticmethod
     def check_single_key(db: Session, client_key):
@@ -31,15 +41,11 @@ class Client(Base):
     @staticmethod
     def retrieve_all_client(db: Session):
         return Client.get_client_object(db).options(load_only(Client.slug, Client.status)).all()
-    
-    # get the client object
-    def get_client_object(db: Session):
-        return db.query(Client)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
     # static method
     @staticmethod
-    def update_single_client(db: Session, client_key, client_data): 
-        client = Client.check_single_key(db, client_key)
+    def update_single_client(db: Session, client_id, client_data): 
+        client = Client.get_client_by_id(db, client_id)
         for key, value in client_data.items():
             setattr(client, key, value)
         return client

@@ -22,6 +22,6 @@ async def validate_client_key(request: Request, db: Session=Depends(get_db)):
         return error_response.unauthorized_error(
             status_code=401, detail="Inactive account")
     # Store the data in the request state
-    request.state.data = get_client
+    request.state.data = get_client.id
     
     return request

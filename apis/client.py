@@ -22,25 +22,25 @@ async def create_new_client(client_details: ClientSchema, db: Session = Depends(
 @client_router.patch("/deactivate", summary="deactivate a client", status_code=200, dependencies=[Depends(validate_client_key)])
 async def deactivate_client(request: Request, db: Session= Depends(get_db)):
     # get the request client data returned from the middleware.
-    client = request.state.data
+    client_id = request.state.data
     # set the status to False.
     update_data = {
         "status": False
     }
-    return app_crud.update_client(db, client.client_key, UpdateStatusSchema(**update_data))
+    return app_crud.update_client(db, client_id, UpdateStatusSchema(**update_data))
     
-@client_router.patch('/reactivate/{client_key}', summary="Reactivate a client", status_code=200)
-async def reactivate_client(client_key: str, db: Session= Depends(get_db)):
+@client_router.patch('/reactivate/{client_id}', summary="Reactivate a client", status_code=200)
+async def reactivate_client(client_id: int, db: Session= Depends(get_db)):
     update_data = {
         "status": True
     }
-    return app_crud.update_client(db, client_key, UpdateStatusSchema(**update_data))
+    return app_crud.update_client(db, client_id, UpdateStatusSchema(**update_data))
 
 @client_router.patch('/update_key', summary="Update single client key", status_code=200, dependencies=[Depends(validate_client_key)])
 async def update_client_key(request: Request, client_key: UpdateClientKeySchema, db: Session = Depends(get_db)):
     # get the request client data returned from the middleware.
-    client = request.state.data
-    return app_crud.update_client_key(db, client.client_key, client_key)
+    client_id = request.state.data
+    return app_crud.update_client_key(db, client_id, client_key)
 
 @client_router.get('/clients', summary="Get all clients status and slugname", status_code=200)
 async def get_all_client(page: int = Query(1, ge=1), page_size: int = 10, db: Session=Depends(get_db)):
