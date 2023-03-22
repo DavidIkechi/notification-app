@@ -35,6 +35,12 @@ def test_create_client(get_session):
     retrieve_clients = models.Client.retrieve_all_client(get_session)
     assert len(retrieve_clients) == 1
     
+    # check if the vaues of attributes created.
+    get_details = models.Client.check_single_key(get_session, client_data['client_key'])
+    assert get_details.slug == client_data['slug']
+    assert get_details.client_key == client_data['client_key']
+    assert get_details.status == True
+    
 # This function checks for error which occurs while creating the client  
 def test_create_client_exist_error(get_session):
     # data to populate the table with.
@@ -101,7 +107,7 @@ def test_deactivate_client_with_middleware(get_session):
     assert client_response.status_code == 200
     assert client_response.json()['status'] == 1
     # check if it was deactivated.
-    assert client_response.json()['detail']['status'] == False 
+    assert client_response.json()['data']['status'] == False 
 
 
 def test_deactivate_client_without_middleware(get_session):
@@ -158,9 +164,9 @@ def test_update_client_key_with_middleware(get_session):
     client_response = client_instance.patch("/client/update", json=new_key, headers=headers)
     assert client_response.status_code == 200
     # check if the key has been updated
-    assert client_response.json()['detail']['client_key'] == new_key_data.client_key
+    assert client_response.json()['data']['client_key'] == new_key_data.client_key
     # chekck that the key is different from the old key.
-    assert client_response.json()['detail']['client_key'] !=  client.client_key
+    assert client_response.json()['data']['client_key'] !=  client.client_key
 
  
 def test_reactivate_client(get_session):
@@ -179,7 +185,7 @@ def test_reactivate_client(get_session):
     # ensure it was created.
     client_response = client_instance.patch(f"/client/reactivate/1")
     assert client_response.status_code == 200
-    assert client_response.json()['detail']['status'] == True
+    assert client_response.json()['data']['status'] == True
     assert client_response.json()['status'] == 1
     
     

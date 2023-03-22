@@ -19,12 +19,12 @@ def create_new_client(db: Session, client_details):
     try:
         get_client = models.Client.check_single_key(db, client_details.client_key)
         if get_client is not None:
-            return exceptions.bad_request_error(detail="Opps!, Client already exists!")
+            return exceptions.bad_request_error("Opps!, Client already exists!")
         # create the client
         create_client = models.Client.create_single_client(db, 
                                                         client_details.slug, client_details.client_key)
         if create_client is None:
-            return exceptions.bad_request_error(detail="An error ocurred while creating client, Please try again")  
+            return exceptions.bad_request_error("An error ocurred while creating client, Please try again")  
         
         db.add(create_client)
         db.commit()
@@ -32,18 +32,17 @@ def create_new_client(db: Session, client_details):
     except Exception as e:
         return exceptions.server_error(detail=str(e))  
 
-    return success_response.success_message(
-        status_code=201, detail="Client was successfully created")
+    return success_response.success_message([], "Client was successfully created", 201)
     
 def update_client(db: Session, client_id, update_client_data):
     try:
         get_client = models.Client.get_client_by_id(db, client_id)
         if get_client is None:
-            return exceptions.bad_request_error(detail="Client with such id does not exists")   
+            return exceptions.bad_request_error("Client with such id does not exists")   
         # update client_field
         update_client_field = models.Client.update_single_client(db, client_id, update_client_data.dict(exclude_unset=True))        
         if not update_client_field:
-            return exceptions.bad_request_error(detail="An error ocurred while updating client, Please try again")
+            return exceptions.bad_request_error("An error ocurred while updating client, Please try again")
             
         db.add(update_client_field)
         db.commit()
@@ -52,20 +51,19 @@ def update_client(db: Session, client_id, update_client_data):
     except Exception as e:
         return exceptions.server_error(detail=str(e))  
 
-    return success_response.success_message(
-        status_code=200, detail=update_client_field)
+    return success_response.success_message(update_client_field, "Client record was successfully updated")
     
 def update_client_key(db: Session, client_id, new_key):
     try:
         # check if the old key exists;
         get_client = models.Client.check_single_key(db, new_key.client_key)
         if get_client is not None:
-            return exceptions.bad_request_error(detail="Client with such key already exists")
+            return exceptions.bad_request_error("Client with such key already exists")
                 
         return update_client(db, client_id, new_key)
            
     except Exception as e:
-        return exceptions.server_error(detail=str(e)) 
+        return exceptions.server_error(str(e)) 
     
 def get_all_clients(db: Session, page: int, page_size: int):
     try:  
@@ -78,10 +76,10 @@ def get_all_clients(db: Session, page: int, page_size: int):
         # data_result = client_object.offset(page_offset).limit(page_size).all()
         data_result = paginate(client_object, page_offset)
       
-        return success_response.success_message(data=data_result)
+        return success_response.success_message(data_result)
         
     except Exception as e:
-        return exceptions.server_error(detail=str(e)) 
+        return exceptions.server_error(str(e)) 
 
         
     

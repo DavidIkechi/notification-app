@@ -25,7 +25,7 @@ class Success:
     def __init__(self):
         pass
     
-    def success_message(self, status_code=200, detail="Success", data=[]):
+    def success_message(self, data=[], detail="Success", status_code=200):
         return JSONResponse(
             status_code= status_code,
             content=jsonable_encoder({"detail": detail,
