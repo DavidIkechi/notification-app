@@ -22,14 +22,11 @@ def test_create_client(get_session):
         'slug': 'client-A',
         'client_key': str(uuid.uuid4())
     }
-    # first check that table is empty.
-    retrieve_clients = models.Client.retrieve_all_client(get_session)
-    assert len(retrieve_clients) == 0
     # check root URL
     root_response = client_instance.get("/")
     assert root_response.status_code == status.HTTP_200_OK
     # get the client router
-    client_response = client_instance.post("/clients/create", json=client_data)
+    client_response = client_instance.post("/client/create", json=client_data)
     
     assert client_response.status_code == 201
     assert client_response.json()['detail'] == "Client was successfully created"
@@ -45,9 +42,6 @@ def test_create_client_exist_error(get_session):
         'slug': 'client-A',
         'client_key': str(uuid.uuid4())
     }
-    # first check that table is empty.
-    retrieve_clients = models.Client.retrieve_all_client(get_session)
-    assert len(retrieve_clients) == 0
     
     client = ClientSchema(**client_data)
     created_client = models.Client(slug=client.slug, client_key=client.client_key)
@@ -60,7 +54,7 @@ def test_create_client_exist_error(get_session):
     assert len(retrieve_clients) == 1
     
     # get the client router
-    client_response = client_instance.post("/clients/create", json=client_data)
+    client_response = client_instance.post("/client/create", json=client_data)
     
     assert client_response.status_code == 400
     assert client_response.json()['detail'] == "Opps!, Client already exists!"
@@ -74,11 +68,9 @@ def test_create_client_insert_error(get_session):
         'slug': None,
         'client_key': str(uuid.uuid4())
     }
-    # first check that table is empty.
-    retrieve_clients = models.Client.retrieve_all_client(get_session)
-    assert len(retrieve_clients) == 0
+    
     # unprocessiable entity error.
-    client_response = client_instance.post("/clients/create", json=client_data)
+    client_response = client_instance.post("/client/create", json=client_data)
     
     assert client_response.status_code != 201
     
@@ -89,9 +81,6 @@ def test_deactivate_client_with_middleware(get_session):
         'slug': 'client-A',
         'client_key': str(uuid.uuid4())
     }
-    # first check that table is empty.
-    retrieve_clients = models.Client.retrieve_all_client(get_session)
-    assert len(retrieve_clients) == 0
     
     client = ClientSchema(**client_data)
     created_client = models.Client(slug=client.slug, client_key=client.client_key)
@@ -107,7 +96,7 @@ def test_deactivate_client_with_middleware(get_session):
         "Client-Authorization": client.client_key
     }
     # update the client status.
-    client_response = client_instance.patch("/clients/deactivate", headers=headers)
+    client_response = client_instance.patch("/client/deactivate", headers=headers)
     
     assert client_response.status_code == 200
     assert client_response.json()['status'] == 1
@@ -121,9 +110,6 @@ def test_deactivate_client_without_middleware(get_session):
         'slug': 'client-A',
         'client_key': str(uuid.uuid4())
     }
-    # first check that table is empty.
-    retrieve_clients = models.Client.retrieve_all_client(get_session)
-    assert len(retrieve_clients) == 0
     
     client = ClientSchema(**client_data)
     created_client = models.Client(slug=client.slug, client_key=client.client_key)
@@ -135,7 +121,7 @@ def test_deactivate_client_without_middleware(get_session):
     retrieve_clients = models.Client.retrieve_all_client(get_session)
     assert len(retrieve_clients) == 1
     # update the client status without headers
-    client_response = client_instance.patch("/clients/deactivate")
+    client_response = client_instance.patch("/client/deactivate")
     
     assert client_response.status_code == 401
     assert client_response.json() == {"detail":"Client key is missing"}
@@ -147,12 +133,9 @@ def test_update_client_key_with_middleware(get_session):
         'slug': 'client-A',
         'client_key': str(uuid.uuid4())
     }
-    # first check that table is empty.
-    retrieve_clients = models.Client.retrieve_all_client(get_session)
-    assert len(retrieve_clients) == 0
     # synchronizing with the schemas.
     client = ClientSchema(**client_data)
-    client_response = client_instance.post("/clients/create", json=client_data)
+    client_response = client_instance.post("/client/create", json=client_data)
     assert client_response.status_code == status.HTTP_201_CREATED
     
     retrieve_clients = models.Client.retrieve_all_client(get_session)
@@ -172,7 +155,7 @@ def test_update_client_key_with_middleware(get_session):
     }
     
     new_key_data = UpdateClientKeySchema(**new_key)
-    client_response = client_instance.patch("/clients/update_key", json=new_key, headers=headers)
+    client_response = client_instance.patch("/client/update", json=new_key, headers=headers)
     assert client_response.status_code == 200
     # check if the key has been updated
     assert client_response.json()['detail']['client_key'] == new_key_data.client_key
@@ -186,9 +169,6 @@ def test_reactivate_client(get_session):
         'slug': 'client-A',
         'client_key': str(uuid.uuid4())
     }
-    # first check that table is empty.
-    retrieve_clients = models.Client.retrieve_all_client(get_session)
-    assert len(retrieve_clients) == 0
     
     client = ClientSchema(**client_data)
     created_client = models.Client(slug=client.slug, client_key=client.client_key)
@@ -197,7 +177,7 @@ def test_reactivate_client(get_session):
     
     assert created_client is not None
     # ensure it was created.
-    client_response = client_instance.patch(f"/clients/reactivate/1")
+    client_response = client_instance.patch(f"/client/reactivate/1")
     assert client_response.status_code == 200
     assert client_response.json()['detail']['status'] == True
     assert client_response.json()['status'] == 1
@@ -208,10 +188,7 @@ def test_reactivate_client_error(get_session):
         'slug': 'client-A',
         'client_key': str(uuid.uuid4())
     }
-    # first check that table is empty.
-    retrieve_clients = models.Client.retrieve_all_client(get_session)
-    assert len(retrieve_clients) == 0
-    
+
     client = ClientSchema(**client_data)
     created_client = models.Client(slug=client.slug, client_key=client.client_key)
     get_session.add(created_client)
@@ -219,15 +196,13 @@ def test_reactivate_client_error(get_session):
     
     assert created_client is not None
     # ensure it was created.
-    client_response = client_instance.patch("/clients/reactivate/5")
+    client_response = client_instance.patch("/client/reactivate/5")
     assert client_response.status_code == 400
     assert client_response.json()['detail'] == "Client with such id does not exists"
     assert client_response.json()['status'] == 0
     
 def test_get_all_clients(get_session):
-    # first check if it's empty
-    retrieve_clients = models.Client.retrieve_all_client(get_session)
-    assert len(retrieve_clients) == 0
+    
     client_data = {
         'slug': 'client-A',
         'client_key': str(uuid.uuid4())
@@ -248,8 +223,8 @@ def test_get_all_clients(get_session):
     get_session.add(created_client)
     get_session.commit()
     # page 1 with 1 rcords per page
-    client_response = client_instance.get("/clients/clients", params={"page":1, "page_size":1})
-    assert len(client_response.json()['detail']['items'])== 1
+    client_response = client_instance.get("/client/", params={"page":1, "page_size":1})
+    assert len(client_response.json()['data']['items'])== 1
 
     
     

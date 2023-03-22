@@ -11,8 +11,8 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 client_router = APIRouter(
-    prefix="/clients",
-    tags=["clients"],
+    prefix="/client",
+    tags=["client"],
 )
                                                                                                                                                                                                                                                                                                                                                                                                                                      
 @client_router.post("/create", summary="create a single client", status_code=201)
@@ -36,12 +36,12 @@ async def reactivate_client(client_id: int, db: Session= Depends(get_db)):
     }
     return app_crud.update_client(db, client_id, UpdateStatusSchema(**update_data))
 
-@client_router.patch('/update_key', summary="Update single client key", status_code=200, dependencies=[Depends(validate_client_key)])
+@client_router.patch('/update', summary="Update single client key", status_code=200, dependencies=[Depends(validate_client_key)])
 async def update_client_key(request: Request, client_key: UpdateClientKeySchema, db: Session = Depends(get_db)):
     # get the request client data returned from the middleware.
     client_id = request.state.data
     return app_crud.update_client_key(db, client_id, client_key)
 
-@client_router.get('/clients', summary="Get all clients status and slugname", status_code=200)
+@client_router.get('/', summary="Get all clients status and slugname", status_code=200)
 async def get_all_client(page: int = Query(1, ge=1), page_size: int = 10, db: Session=Depends(get_db)):
     return app_crud.get_all_clients(db, page, page_size)

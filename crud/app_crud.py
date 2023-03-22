@@ -30,7 +30,7 @@ def create_new_client(db: Session, client_details):
         db.commit()
         
     except Exception as e:
-        return exceptions.server_error(status_code=500, detail=str(e))  
+        return exceptions.server_error(detail=str(e))  
 
     return success_response.success_message(
         status_code=201, detail="Client was successfully created")
@@ -50,7 +50,7 @@ def update_client(db: Session, client_id, update_client_data):
         db.refresh(update_client_field)
         
     except Exception as e:
-        return exceptions.server_error(status_code=500, detail=str(e))  
+        return exceptions.server_error(detail=str(e))  
 
     return success_response.success_message(
         status_code=200, detail=update_client_field)
@@ -65,7 +65,7 @@ def update_client_key(db: Session, client_id, new_key):
         return update_client(db, client_id, new_key)
            
     except Exception as e:
-        return exceptions.server_error(status_code=500, detail=str(e)) 
+        return exceptions.server_error(detail=str(e)) 
     
 def get_all_clients(db: Session, page: int, page_size: int):
     try:  
@@ -78,11 +78,10 @@ def get_all_clients(db: Session, page: int, page_size: int):
         # data_result = client_object.offset(page_offset).limit(page_size).all()
         data_result = paginate(client_object, page_offset)
       
-        return success_response.success_message(
-            status_code=200, detail=data_result)
+        return success_response.success_message(data=data_result)
         
     except Exception as e:
-        return exceptions.server_error(status_code=500, detail=str(e)) 
+        return exceptions.server_error(detail=str(e)) 
 
         
     
