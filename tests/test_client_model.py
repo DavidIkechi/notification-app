@@ -106,7 +106,7 @@ def test_update_client_status(get_session):
     
     client_update_data = UpdateStatusSchema(**update_data)
     updated_client = models.Client.update_single_client(
-        get_session, client_1.client_key, client_update_data.dict(exclude_unset=True))
+        get_session, get_details.id, client_update_data.dict(exclude_unset=True))
     get_session.commit()
     get_session.refresh(updated_client)
     

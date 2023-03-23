@@ -1,11 +1,17 @@
 import pytest
+from fastapi import FastAPI
 import sys
 from sqlalchemy.orm import sessionmaker
 sys.path.append("..")
-from db.session import Session, engine, Base
+from db.session import engine, Base, get_db
+from db.session import Session as sess
+from main import notification_app 
+from fastapi.testclient import TestClient
 
-# the scope = 'session' is called once when the test is runned.
-# The code is executed once.
+
+
+# the scope = 'session' is called once when the test is runned accross all files.
+# The code is executed for all files
 @pytest.fixture(scope='session')
 def db():
     Base.metadata.create_all(bind=engine)
@@ -15,9 +21,13 @@ def db():
 # This is called for each test function in the test files.     
 @pytest.fixture(scope='function')
 def get_session(db):
-    connection = db.connect()
+    connection = engine.connect()
     transaction = connection.begin()
-    session = sessionmaker(bind=connection)()
+    session = sess(bind=connection)
+    # drop and re-create all tables
+    Base.metadata.drop_all(bind=connection)
+    Base.metadata.create_all(bind=connection)
+
     try:
         yield session
         session.commit()
@@ -25,3 +35,10 @@ def get_session(db):
         session.close()
         transaction.rollback()
         connection.close()
+        
+@pytest.fixture(scope="function")
+def client_instance(db):    
+    with TestClient(notification_app) as client_instance:
+        yield client_instance
+        
+         

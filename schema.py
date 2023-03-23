@@ -20,4 +20,6 @@ class UpdateStatusSchema(BaseModel):
             raise ValueError("Value must be True or False")
         return v
             
+class UpdateClientKeySchema(BaseModel):
+    client_key: str
         
