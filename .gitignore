@@ -51,4 +51,6 @@ Thumbs.db
 env
 *__pycache__
 *versions
+*.htmlcov
+.coverage
 

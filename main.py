@@ -1,7 +1,7 @@
 # The main point of call.
 from fastapi import FastAPI, Depends
 from schema import *
-from db.session import get_db, Base, Session, engine
+from db.session import Base, Session, engine
 from db import models
 from jobs.job_config import notification_schedule
 from apis.client import client_router
@@ -28,8 +28,8 @@ notification_app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-# # create the tables.
-# models.Base.metadata.create_all(engine)
+# create the tables.
+models.Base.metadata.create_all(engine)
 
 # allowed host.
 origins =[]
@@ -71,7 +71,7 @@ notification_app.include_router(
 )
 @notification_app.get("/")
 async def ping():
-    return {"detail": "Notification Applcation is up"}
+    return {"detail": "Notification Application is up"}
 
 if __name__ == "__main__":
     # Run both applications

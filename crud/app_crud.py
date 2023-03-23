@@ -1,11 +1,12 @@
 import sys
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session, load_only
+# from sqlalchemy.orm import Session, load_only
 
 sys.path.append("..")
 from utils import *
 from db import models
+from db.session import Session
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi_pagination import Page, Params
@@ -14,7 +15,10 @@ from response_handler import success_response
 from fastapi_pagination.ext.sqlalchemy import paginate
 
 
-def create_new_client(db: Session, client_details):
+db = Session()
+
+
+def create_new_client(db, client_details):
     # first check if the client is already present.
     try:
         get_client = models.Client.check_single_key(db, client_details.client_key)
@@ -34,7 +38,7 @@ def create_new_client(db: Session, client_details):
 
     return success_response.success_message([], "Client was successfully created", 201)
     
-def update_client(db: Session, client_id, update_client_data):
+def update_client(db, client_id, update_client_data):
     try:
         get_client = models.Client.get_client_by_id(db, client_id)
         if get_client is None:
@@ -53,7 +57,7 @@ def update_client(db: Session, client_id, update_client_data):
 
     return success_response.success_message(update_client_field, "Client record was successfully updated")
     
-def update_client_key(db: Session, client_id, new_key):
+def update_client_key(db, client_id, new_key):
     try:
         # check if the old key exists;
         get_client = models.Client.check_single_key(db, new_key.client_key)
@@ -65,10 +69,10 @@ def update_client_key(db: Session, client_id, new_key):
     except Exception as e:
         return exceptions.server_error(str(e)) 
     
-def get_all_clients(db: Session, page: int, page_size: int):
+def get_all_clients(db, page: int, page_size: int):
     try:  
         # get the client object for the desired columns.
-        client_object = models.Client.get_client_object(db).options(load_only(models.Client.slug, models.Client.status))
+        client_object = models.Client.get_client_object(db)
         # calculate page offset.
         # page_offset = get_offset(page, page_size)
         page_offset = Params(page=page, size=page_size)
