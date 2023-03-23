@@ -393,7 +393,7 @@ def test_get_all_clients_with_error(client_instance, get_session):
     get_session.commit()
     # page 1 with 1 rcords per page
     client_response = client_instance.get("/client/", params={"page":0, "page_size":1, "page_number": 0})
-    assert client_response.status_code != 200
+    assert client_response.status_code == 422
 
     
     
