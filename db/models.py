@@ -50,6 +50,38 @@ class Client(Base):
             setattr(client, key, value)
         return client
     
+class TransportType(Base):
+    __tablename__ = 'transport_type'
+    id = Column(Integer, primary_key=True, index=True)
+    transport_type = Column(String(255), unique=True, index=True)
+    
+    created_at = Column(TIMESTAMP(timezone=True),
+                        default = datetime.utcnow(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        default=datetime.utcnow(), 
+                        onupdate=datetime.utcnow(), nullable=False)
+    
+    # start defining the static methods.
+    @staticmethod
+    def get_transport_object(db: Session):
+        return db.query(TransportType)
+    
+    @staticmethod
+    def get_transport_by_id(db: Session, transport_id):
+        return TransportType.get_transport_object(db).get(transport_id)
+    
+    @staticmethod
+    def get_transport_by_name(db: Session, transport_name):
+        return TransportType.get_transport_object(db).filter_by(
+            transport_type = transport_name).first()
+    
+    @staticmethod
+    def retrieve_all_transports(db: Session):
+        return TransportType.get_transport_object(db).all()
+    
+    
+    
+    
             
             
         
