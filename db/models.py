@@ -1,7 +1,7 @@
 # for models.
 from .session import Base
-from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP
-from sqlalchemy.orm import Session, load_only
+from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, ForeignKey
+from sqlalchemy.orm import Session, load_only, relationship
 import uuid
 from datetime import datetime
 from sqlalchemy.sql import text
@@ -53,8 +53,7 @@ class Client(Base):
 class TransportType(Base):
     __tablename__ = 'transport_type'
     id = Column(Integer, primary_key=True, index=True)
-    transport_type = Column(String(255), unique=True, index=True)
-    
+    transport_type = Column(String(255), nullable= False, unique=True, index=True)    
     created_at = Column(TIMESTAMP(timezone=True),
                         default = datetime.utcnow(), nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True),
@@ -79,6 +78,41 @@ class TransportType(Base):
     def retrieve_all_transports(db: Session):
         return TransportType.get_transport_object(db).all()
     
+class NotificationType(Base):
+    __tablename__ = 'notification_type'
+    id = Column(Integer, primary_key=True, index=True)
+    noti_type = Column(String(255), nullable=False, index=True)
+    created_at = Column(TIMESTAMP(timezone=True),
+                        default = datetime.utcnow(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        default=datetime.utcnow(), 
+                        onupdate=datetime.utcnow(), nullable=False)
+    
+    # start defining the static methods.
+    @staticmethod
+    def get_notification_object(db: Session):
+        return db.query(NotificationType)
+    
+    @staticmethod
+    def retrieve_all_noti_type(db: Session):
+        return NotificationType.get_notification_object(db).all()
+    
+    @staticmethod
+    def get_noti_by_id(db: Session, noti_id: int):
+        return NotificationType.get_notification_object(db).get(noti_id)
+    
+    @staticmethod
+    def get_noti_by_type(db: Session, noti_type: str):
+        return NotificationType.get_notification_object(db).filter_by(
+            noti_type = noti_type
+        ).first()
+        
+class NotificationSample(Base):
+    __tablename__ = 'notification_sample'
+    
+    
+    
+        
     
     
     

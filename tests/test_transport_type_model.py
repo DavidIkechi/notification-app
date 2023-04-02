@@ -3,7 +3,6 @@ from .seeder import *
 import sys
 sys.path.append("..")
 from db import models
-from schema import ClientSchema, UpdateStatusSchema, UpdateClientKeySchema
 import uuid
 from fastapi import status
 # from fastapi.testclient import TestClient
@@ -44,7 +43,7 @@ def test_transport_id_not_exist(get_session):
     get_transport = models.TransportType.get_transport_by_id(get_session, 3)
     assert get_transport is None
     
-def test_transport_name_exist(get_session):
+def test_transport_type_exist(get_session):
     # populate the table with the transport types
     seed_transport(get_session)
     # For EMAILS
@@ -54,7 +53,7 @@ def test_transport_name_exist(get_session):
     get_transport = models.TransportType.get_transport_by_name(get_session, "sms")
     assert get_transport is not None
     
-def test_transport_name_not_exists(get_session):
+def test_transport_type_not_exists(get_session):
     seed_transport(get_session)
     # For EMAILS
     get_transport = models.TransportType.get_transport_by_name(get_session, "phone")

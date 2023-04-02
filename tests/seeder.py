@@ -16,5 +16,18 @@ def seed_transport(db: Session):
         db.add_all(transport_instance)
         db.commit()
         
+def seed_notification(db: Session):
+    notification_type = [
+        {"id": 1, "noti_type": "Login"},
+        {"id": 2, "noti_type": "Forgot Password"},
+        {"id": 3, "noti_type": "Reset Password"},
+        {"id": 4, "noti_type": "Registeration"},
+    ]
+    
+    if models.NotificationType.get_notification_object(db).count() == 0:
+        notification_instance = [models.NotificationType(**notification) for notification in notification_type]
+        db.add_all(notification_instance)
+        db.commit()
+        
         
         
