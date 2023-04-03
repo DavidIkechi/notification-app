@@ -18,7 +18,7 @@ def seed_transport_channel(db: Session):
         
 def seed_transport_type(db: Session):
     transport_type = [
-        {"id":1, "trans_type": "Welcome", "slug": "welcome"},
+        {"id": 1, "trans_type": "Welcome", "slug": "welcome"},
         {"id": 2, "trans_type": "Login", "slug": "login"},
         {"id": 3, "trans_type": "Forgot Password", "slug": "forget-password"},
         {"id": 4, "trans_type": "Reset Password", "slug": "reset-password"},

@@ -145,9 +145,54 @@ class NotificationSample(Base):
     updated_at = Column(TIMESTAMP(timezone=True),
                         default=datetime.utcnow(), 
                         onupdate=datetime.utcnow(), nullable=False)
+    #static methods.
+    @staticmethod
+    def noti_sample_object(db: Session):
+        return db.query(NotificationSample)
     
+    @staticmethod
+    def get_noti_sample_by_id(db: Session, noti_id):
+        return NotificationSample.noti_sample_object(db).get(noti_id)
     
-# Channel Transport
+    @staticmethod
+    def create_noti_sample(db: Session, noti_data: dict):
+        return NotificationSample(**noti_data)
+    
+    @staticmethod
+    def update_noti_sample(db: Session, noti_id, noti_update_data: dict):
+        noti_sample = NotificationSample.get_noti_sample_by_id(db, noti_id)
+        for key, value in noti_update_data.items():
+            setattr(noti_sample, key, value)
+        return noti_sample 
+    
+    @staticmethod
+    def retrieve_noti_samples_by_status(db:Session, client_id, noti_status):
+        return NotificationSample.noti_sample_object(db).filter_by(
+            client_id = client_id, notification_state = noti_status
+        )
+    
+    @staticmethod
+    def retrieve_noti_samples_by_trans_channel(db: Session, client_id, channel_id):
+        return NotificationSample.noti_sample_object(db).filter_by(
+            client_id = client_id, trans_channel_id = channel_id
+        )
+        
+    @staticmethod
+    def retrieve_all_noti_samples_by_client_id(db: Session, client_id):
+        return NotificationSample.noti_sample_object(db).filter_by(
+            client_id = client_id)
+        
+    @staticmethod
+    def check_noti_sample_by_trans_type(db: Session, client_id, trans_type_id):
+        return NotificationSample.noti_sample_object(db).filter_by(
+            client_id = client_id, trans_type_id = trans_type_id
+        ).first()
+        
+    @staticmethod
+    def retrieve_noti_samples(db: Session):
+        return NotificationSample.noti_sample_object(db).all()
+        
+# Channel Transport Type
 class ChannelTransportType(Base):
     __tablename__ = 'channel_transport_type'
     id = Column(Integer, primary_key=True, index=True)

@@ -1,4 +1,4 @@
-from .conftest import get_session, client_instance
+from .conftest import get_session
 from .seeder import *
 import sys
 sys.path.append("..")
