@@ -1,11 +1,12 @@
 # for models.
 from .session import Base
-from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, ForeignKey, Float, JSON, TEXT
 from sqlalchemy.orm import Session, load_only, relationship
 import uuid
 from datetime import datetime
 from sqlalchemy.sql import text
 
+# Client Table.
 class Client(Base):
     __tablename__ = "client"
     id = Column(Integer, primary_key=True, index=True)
@@ -17,6 +18,9 @@ class Client(Base):
     updated_at = Column(TIMESTAMP(timezone=True),
                         default=datetime.utcnow(), 
                         onupdate=datetime.utcnow(), nullable=False)
+    # relationship
+    noti_sample = relationship('NotificationSample', back_populates='client')
+    
     
     # get the client object
     @staticmethod
@@ -49,16 +53,54 @@ class Client(Base):
         for key, value in client_data.items():
             setattr(client, key, value)
         return client
-    
-class TransportType(Base):
-    __tablename__ = 'transport_type'
+
+# Transport Channel Table    
+class TransportChannel(Base):
+    __tablename__ = 'transport_channel'
     id = Column(Integer, primary_key=True, index=True)
-    transport_type = Column(String(255), nullable= False, unique=True, index=True)    
+    channel_type = Column(String(255), nullable= False, unique=True, index=True)    
+    slug = Column(String(100), unique=True, nullable=False, index=True)
     created_at = Column(TIMESTAMP(timezone=True),
                         default = datetime.utcnow(), nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True),
                         default=datetime.utcnow(), 
                         onupdate=datetime.utcnow(), nullable=False)
+    # relationship.
+    noti_sample = relationship('NotificationSample', back_populates='trans_channel')
+    channel_trans = relationship('ChannelTransportType', back_populates='trans_channel')
+    
+    # start defining the static methods.
+    @staticmethod
+    def get_transport_channel_object(db: Session):
+        return db.query(TransportChannel)
+    
+    @staticmethod
+    def get_channel_by_id(db: Session, channel_id):
+        return TransportChannel.get_transport_channel_object(db).get(channel_id)
+    
+    @staticmethod
+    def get_channel_by_slug(db: Session, slug_name):
+        return TransportChannel.get_transport_channel_object(db).filter_by(
+            slug = slug_name).first()
+    
+    @staticmethod
+    def retrieve_channels(db: Session):
+        return TransportChannel.get_transport_channel_object(db).all()
+
+# Transport Type Table   
+class TransportType(Base):
+    __tablename__ = 'transport_type'
+    id = Column(Integer, primary_key=True, index=True)
+    trans_type = Column(String(255), nullable=False, index=True)
+    slug = Column(String(100), unique=True, nullable=False, index=True)
+
+    created_at = Column(TIMESTAMP(timezone=True),
+                        default = datetime.utcnow(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        default=datetime.utcnow(), 
+                        onupdate=datetime.utcnow(), nullable=False)
+    # relationships.
+    noti_sample = relationship('NotificationSample', back_populates='trans_type')
     
     # start defining the static methods.
     @staticmethod
@@ -66,51 +108,93 @@ class TransportType(Base):
         return db.query(TransportType)
     
     @staticmethod
-    def get_transport_by_id(db: Session, transport_id):
-        return TransportType.get_transport_object(db).get(transport_id)
-    
-    @staticmethod
-    def get_transport_by_name(db: Session, transport_name):
-        return TransportType.get_transport_object(db).filter_by(
-            transport_type = transport_name).first()
-    
-    @staticmethod
-    def retrieve_all_transports(db: Session):
+    def retrieve_transport_types(db: Session):
         return TransportType.get_transport_object(db).all()
     
-class NotificationType(Base):
-    __tablename__ = 'notification_type'
+    @staticmethod
+    def get_transport_by_id(db: Session, trans_id: int):
+        return TransportType.get_transport_object(db).get(trans_id)
+    
+    @staticmethod
+    def get_transport_by_slug(db: Session, slug: str):
+        return TransportType.get_transport_object(db).filter_by(
+            slug = slug
+        ).first()
+
+# Notification Sample Table     
+class NotificationSample(Base):
+    __tablename__ = 'notification_sample'
     id = Column(Integer, primary_key=True, index=True)
-    noti_type = Column(String(255), nullable=False, index=True)
+    client_id = Column(Integer, ForeignKey('client.id', ondelete='CASCADE'))
+    trans_channel_id = Column(Integer, ForeignKey('transport_channel.id', ondelete='CASCADE'))
+    trans_type_id = Column(Integer, ForeignKey('transport_type.id', ondelete='CASCADE'))
+    message_body = Column(TEXT, nullable=False)
+    subject = Column(TEXT, nullable=True)
+    sender_id = Column(String(255), nullable=False)
+    sender_email = Column(String(255), nullable=True)
+    carbon_copy = Column(JSON, nullable=True, default=[])
+    blind_copy = Column(JSON, nullable=True, default=[])
+    notification_state = Column(Boolean, default=True)
+    # creating the relationship for the foreign keys.
+    client = relationship('Client', back_populates='noti_sample')
+    trans_channel = relationship('TransportChannel', back_populates='noti_sample')
+    trans_type = relationship('TransportType', back_populates='noti_sample')
+    # created and updated at.
     created_at = Column(TIMESTAMP(timezone=True),
                         default = datetime.utcnow(), nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True),
                         default=datetime.utcnow(), 
                         onupdate=datetime.utcnow(), nullable=False)
     
-    # start defining the static methods.
+    
+# Channel Transport
+class ChannelTransportType(Base):
+    __tablename__ = 'channel_transport_type'
+    id = Column(Integer, primary_key=True, index=True)
+    channel_id = Column(Integer, ForeignKey('transport_channel.id', ondelete='CASCADE'))
+    parameters = Column(JSON, nullable=False)
+    gate_way = Column(String(255), nullable=False, unique=True)
+    slug = Column(String(100), unique=True, nullable=False, index=True)
+
+    
+    trans_channel = relationship('TransportChannel', back_populates='channel_trans')
+    # created and updated at.
+    created_at = Column(TIMESTAMP(timezone=True),
+                        default = datetime.utcnow(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        default=datetime.utcnow(), 
+                        onupdate=datetime.utcnow(), nullable=False)
+    
+    #static methods
     @staticmethod
-    def get_notification_object(db: Session):
-        return db.query(NotificationType)
+    def get_channel_transport_object(db: Session):
+        return db.query(ChannelTransportType)
     
     @staticmethod
-    def retrieve_all_noti_type(db: Session):
-        return NotificationType.get_notification_object(db).all()
-    
-    @staticmethod
-    def get_noti_by_id(db: Session, noti_id: int):
-        return NotificationType.get_notification_object(db).get(noti_id)
-    
-    @staticmethod
-    def get_noti_by_type(db: Session, noti_type: str):
-        return NotificationType.get_notification_object(db).filter_by(
-            noti_type = noti_type
-        ).first()
+    def retrieve_gateways(db: Session):
+        return ChannelTransportType.get_channel_transport_object(db).options(load_only(
+            ChannelTransportType.channel_id, ChannelTransportType.gate_way
+        )).all()
         
-class NotificationSample(Base):
-    __tablename__ = 'notification_sample'
+    @staticmethod
+    def get_channel_trans_params_by_id(db: Session, gateway_id: int):
+        return ChannelTransportType.get_channel_transport_object(db).get(gateway_id)
+    
+    @staticmethod
+    def get_channel_trans_param_by_slug(db: Session, gateway_slug: str):
+        return ChannelTransportType.get_channel_transport_object(db).filter_by(
+            slug = gateway_slug).first()  
     
     
+
+    
+    
+    
+    
+    
+    
+    
+      
     
         
     
