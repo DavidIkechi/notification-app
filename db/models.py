@@ -87,11 +87,11 @@ class TransportChannel(Base):
     def retrieve_channels(db: Session):
         return TransportChannel.get_transport_channel_object(db).all()
 
-# Transport Type Table   
-class TransportType(Base):
-    __tablename__ = 'transport_type'
+# Notification Type Table   
+class NotificationType(Base):
+    __tablename__ = 'notification_type'
     id = Column(Integer, primary_key=True, index=True)
-    trans_type = Column(String(255), nullable=False, index=True)
+    noti_type = Column(String(255), nullable=False, index=True)
     slug = Column(String(100), unique=True, nullable=False, index=True)
 
     created_at = Column(TIMESTAMP(timezone=True),
@@ -100,24 +100,24 @@ class TransportType(Base):
                         default=datetime.utcnow(), 
                         onupdate=datetime.utcnow(), nullable=False)
     # relationships.
-    noti_sample = relationship('NotificationSample', back_populates='trans_type')
+    noti_sample = relationship('NotificationSample', back_populates='noti_type')
     
     # start defining the static methods.
     @staticmethod
-    def get_transport_object(db: Session):
-        return db.query(TransportType)
+    def get_notification_object(db: Session):
+        return db.query(NotificationType)
     
     @staticmethod
-    def retrieve_transport_types(db: Session):
-        return TransportType.get_transport_object(db).all()
+    def retrieve_notification_types(db: Session):
+        return NotificationType.get_notification_object(db).all()
     
     @staticmethod
-    def get_transport_by_id(db: Session, trans_id: int):
-        return TransportType.get_transport_object(db).get(trans_id)
+    def get_notification_by_id(db: Session, noti_id: int):
+        return NotificationType.get_notification_object(db).get(noti_id)
     
     @staticmethod
-    def get_transport_by_slug(db: Session, slug: str):
-        return TransportType.get_transport_object(db).filter_by(
+    def get_notification_by_slug(db: Session, slug: str):
+        return NotificationType.get_notification_object(db).filter_by(
             slug = slug
         ).first()
 
@@ -127,18 +127,18 @@ class NotificationSample(Base):
     id = Column(Integer, primary_key=True, index=True)
     client_id = Column(Integer, ForeignKey('client.id', ondelete='CASCADE'))
     trans_channel_id = Column(Integer, ForeignKey('transport_channel.id', ondelete='CASCADE'))
-    trans_type_id = Column(Integer, ForeignKey('transport_type.id', ondelete='CASCADE'))
+    noti_type_id = Column(Integer, ForeignKey('notification_type.id', ondelete='CASCADE'))
     message_body = Column(TEXT, nullable=False)
-    subject = Column(TEXT, nullable=True)
+    subject = Column(String(100), nullable=True) # plus spaces.
     sender_id = Column(String(255), nullable=False)
     sender_email = Column(String(255), nullable=True)
     carbon_copy = Column(JSON, nullable=True, default=[])
     blind_copy = Column(JSON, nullable=True, default=[])
-    notification_state = Column(Boolean, default=True)
+    notification_state = Column(Boolean, default= False) # default should be false.
     # creating the relationship for the foreign keys.
     client = relationship('Client', back_populates='noti_sample')
     trans_channel = relationship('TransportChannel', back_populates='noti_sample')
-    trans_type = relationship('TransportType', back_populates='noti_sample')
+    noti_type = relationship('NotificationType', back_populates='noti_sample')
     # created and updated at.
     created_at = Column(TIMESTAMP(timezone=True),
                         default = datetime.utcnow(), nullable=False)
@@ -183,9 +183,9 @@ class NotificationSample(Base):
             client_id = client_id)
         
     @staticmethod
-    def check_noti_sample_by_trans_type(db: Session, client_id, trans_type_id):
+    def check_noti_sample_by_noti_type(db: Session, client_id, noti_type_id):
         return NotificationSample.noti_sample_object(db).filter_by(
-            client_id = client_id, trans_type_id = trans_type_id
+            client_id = client_id, noti_type_id = noti_type_id
         ).first()
         
     @staticmethod

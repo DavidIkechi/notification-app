@@ -1,6 +1,6 @@
 # Schemas
 from pydantic import BaseModel as PydanticBaseModel
-from pydantic import validator, EmailStr
+from pydantic import validator, EmailStr, Field
 from typing import List, Optional
 
 
@@ -27,9 +27,9 @@ class UpdateClientKeySchema(BaseModel):
 class NotificationDataSchema(BaseModel):
     client_id: int
     trans_channel_id: int
-    trans_type_id: int
+    noti_type_id: int
     message_body: str
-    subject: str = None
+    subject: str = Field(None, max_length=100) 
     sender_id: str
     sender_email: EmailStr = None
     carbon_copy: Optional[List[EmailStr]] = None
@@ -37,7 +37,7 @@ class NotificationDataSchema(BaseModel):
     
 class NotificationUpdateSchema(BaseModel):
     message_body: str = None
-    subject: str = None
+    subject: str = Field(None, max_length=100)
     sender_id: str = None
     sender_email: EmailStr = None
     carbon_copy: Optional[List[EmailStr]] = None
@@ -51,4 +51,4 @@ class NotificationUpdateSchema(BaseModel):
         return v
     
     
-        
+# make it fault

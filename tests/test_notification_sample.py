@@ -17,29 +17,29 @@ def get_client_data() -> dict:
 
 def get_notification_data() -> list:
     noti_data = [
-        {'client_id': 1, 'trans_channel_id': 1, 'trans_type_id': 1, 'sender_id': 'Intutitve', 'message_body': "You are welcome"},
-        {'client_id': 1, 'trans_channel_id': 2, 'trans_type_id': 2, 'sender_id': 'Intutitve', 'message_body': "An account just signed in"}
+        {'client_id': 1, 'trans_channel_id': 1, 'noti_type_id': 1, 'sender_id': 'Intutitve', 'message_body': "You are welcome"},
+        {'client_id': 1, 'trans_channel_id': 2, 'noti_type_id': 2, 'sender_id': 'Intutitve', 'message_body': "An account just signed in"}
     ]
     
     return noti_data
 
 
-def test_seeder_channel_transport_channel(get_session):
+def test_seed_channel_transport_channel(get_session):
     # first populate the transport channel and transport type tables
     seed_transport_channel(get_session)
-    seed_transport_type(get_session)
+    seed_notification_type(get_session)
     
     channels = models.TransportChannel.retrieve_channels(get_session)
-    transport_types = models.TransportType.retrieve_transport_types(get_session)
+    notification_types = models.NotificationType.retrieve_notification_types(get_session)
     
     assert len(channels) == 2
-    assert len(transport_types) == 5
+    assert len(notification_types) == 5
     
     
 def test_create_email_noti_sample(get_session):
     # first populate the transport channel and transport type tables
     seed_transport_channel(get_session)
-    seed_transport_type(get_session)
+    seed_notification_type(get_session)
     # add the client
     client_1 = ClientSchema(**get_client_data())
     created_client_1 = models.Client.create_single_client(get_session, client_1.slug, client_1.client_key)
@@ -65,7 +65,7 @@ def test_create_email_noti_sample(get_session):
 def test_create_sms_noti_sample(get_session):
     # first populate the transport channel and transport type tables
     seed_transport_channel(get_session)
-    seed_transport_type(get_session)
+    seed_notification_type(get_session)
     # add the client
     client_1 = ClientSchema(**get_client_data())
     created_client_1 = models.Client.create_single_client(get_session, client_1.slug, client_1.client_key)
@@ -90,7 +90,7 @@ def test_create_sms_noti_sample(get_session):
 def test_retrieve_noti_sample_by_status(get_session):
     # first populate the transport channel and transport type tables
     seed_transport_channel(get_session)
-    seed_transport_type(get_session)
+    seed_notification_type(get_session)
     # add the client
     client_1 = ClientSchema(**get_client_data())
     created_client_1 = models.Client.create_single_client(get_session, client_1.slug, client_1.client_key)
@@ -113,16 +113,16 @@ def test_retrieve_noti_sample_by_status(get_session):
     assert len(retrieve_noti) == 2
     # retrieve all notifications by their status for a client. i.e active(True) or inactive(False)
     active_notifications = models.NotificationSample.retrieve_noti_samples_by_status(get_session, 1, True)
-    assert len(active_notifications.all()) == 2
+    assert len(active_notifications.all()) == 0
     # inactive
     inactive_notifications = models.NotificationSample.retrieve_noti_samples_by_status(get_session, 1, False)
-    assert len(inactive_notifications.all()) == 0
+    assert len(inactive_notifications.all()) == 2
     
 
 def test_retrieve_noti_samples_by_transport_channel(get_session):
      # first populate the transport channel and transport type tables
     seed_transport_channel(get_session)
-    seed_transport_type(get_session)
+    seed_notification_type(get_session)
     # add the client
     client_1 = ClientSchema(**get_client_data())
     created_client_1 = models.Client.create_single_client(get_session, client_1.slug, client_1.client_key)
@@ -151,7 +151,7 @@ def test_retrieve_noti_samples_by_transport_channel(get_session):
 def test_retrieve_noti_samples_per_client(get_session):
      # first populate the transport channel and transport type tables
     seed_transport_channel(get_session)
-    seed_transport_type(get_session)
+    seed_notification_type(get_session)
     # add the client
     client_1 = ClientSchema(**get_client_data())
     created_client_1 = models.Client.create_single_client(get_session, client_1.slug, client_1.client_key)
@@ -170,7 +170,7 @@ def test_retrieve_noti_samples_per_client(get_session):
 def test_get_noti_sample_by_id_exists(get_session):
      # first populate the transport channel and transport type tables
     seed_transport_channel(get_session)
-    seed_transport_type(get_session)
+    seed_notification_type(get_session)
     # add the client
     client_1 = ClientSchema(**get_client_data())
     created_client_1 = models.Client.create_single_client(get_session, client_1.slug, client_1.client_key)
@@ -191,7 +191,7 @@ def test_get_noti_sample_by_id_exists(get_session):
 def test_get_noti_sample_by_id_not_exists(get_session):
      # first populate the transport channel and transport type tables
     seed_transport_channel(get_session)
-    seed_transport_type(get_session)
+    seed_notification_type(get_session)
     # add the client
     client_1 = ClientSchema(**get_client_data())
     created_client_1 = models.Client.create_single_client(get_session, client_1.slug, client_1.client_key)
@@ -211,11 +211,11 @@ def test_update_noti_sample(get_session):
     updated_noti_data = {
         "carbon_copy": ["davidakwuruu@gmail.com"],
         "blind_copy": ["intuitive@gmail.com"],
-        "notification_state": False
+        "notification_state": True
     }
     # first populate the transport channel and transport type tables
     seed_transport_channel(get_session)
-    seed_transport_type(get_session)
+    seed_notification_type(get_session)
     # add the client
     client_1 = ClientSchema(**get_client_data())
     created_client_1 = models.Client.create_single_client(get_session, client_1.slug, client_1.client_key)
@@ -239,7 +239,7 @@ def test_update_noti_sample(get_session):
     assert noti_sample.message_body == "You are welcome"
     assert noti_sample.carbon_copy == []
     assert noti_sample.blind_copy == []
-    assert noti_sample.notification_state is True
+    assert noti_sample.notification_state is False
     # update the sample
     update_noti_schema = NotificationUpdateSchema(**updated_noti_data)
     updated_noti = models.NotificationSample.update_noti_sample(get_session, 1, update_noti_schema.dict(exclude_unset=True, exclude_none=True))
@@ -250,7 +250,7 @@ def test_update_noti_sample(get_session):
     assert noti_sample.message_body == "You are welcome"
     assert noti_sample.carbon_copy == updated_noti_data['carbon_copy']
     assert noti_sample.blind_copy == updated_noti_data['blind_copy']
-    assert noti_sample.notification_state is False
+    assert noti_sample.notification_state is True
     
 def test_disable_noti_sample(get_session):
     updated_noti_data = {
@@ -258,7 +258,7 @@ def test_disable_noti_sample(get_session):
     }
     # first populate the transport channel and transport type tables
     seed_transport_channel(get_session)
-    seed_transport_type(get_session)
+    seed_notification_type(get_session)
     # add the client
     client_1 = ClientSchema(**get_client_data())
     created_client_1 = models.Client.create_single_client(get_session, client_1.slug, client_1.client_key)
@@ -272,7 +272,7 @@ def test_disable_noti_sample(get_session):
     get_session.commit()
     # first check the state.
     noti_sample = models.NotificationSample.get_noti_sample_by_id(get_session, 1)
-    assert noti_sample.notification_state is True
+    assert noti_sample.notification_state is False
     # update the sample
     update_noti_schema = NotificationUpdateSchema(**updated_noti_data)
     updated_noti = models.NotificationSample.update_noti_sample(get_session, 1, update_noti_schema.dict(exclude_unset=True, exclude_none=True))
@@ -281,6 +281,37 @@ def test_disable_noti_sample(get_session):
     # check the updated state.
     noti_sample = models.NotificationSample.get_noti_sample_by_id(get_session, 1)
     assert noti_sample.notification_state is False
+    
+    
+def test_enable_noti_sample(get_session):
+    updated_noti_data = {
+        "notification_state": True
+    }
+    # first populate the transport channel and transport type tables
+    seed_transport_channel(get_session)
+    seed_notification_type(get_session)
+    # add the client
+    client_1 = ClientSchema(**get_client_data())
+    created_client_1 = models.Client.create_single_client(get_session, client_1.slug, client_1.client_key)
+    get_session.add(created_client_1)
+    get_session.commit()
+     # add email-noti data
+    email_noti_data = get_notification_data()[0]
+    email_noti_schema = NotificationDataSchema(**email_noti_data)
+    email_noti_sample = models.NotificationSample.create_noti_sample(get_session, email_noti_schema.dict(exclude_unset=True, exclude_none=True))
+    get_session.add(email_noti_sample)
+    get_session.commit()
+    # first check the state.
+    noti_sample = models.NotificationSample.get_noti_sample_by_id(get_session, 1)
+    assert noti_sample.notification_state is False
+    # update the sample
+    update_noti_schema = NotificationUpdateSchema(**updated_noti_data)
+    updated_noti = models.NotificationSample.update_noti_sample(get_session, 1, update_noti_schema.dict(exclude_unset=True, exclude_none=True))
+    get_session.commit()
+    get_session.refresh(updated_noti)
+    # check the updated state.
+    noti_sample = models.NotificationSample.get_noti_sample_by_id(get_session, 1)
+    assert noti_sample.notification_state is True
     
     
     
