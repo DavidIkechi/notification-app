@@ -255,6 +255,17 @@ class TransportConfiguration(Base):
         return db.query(TransportConfiguration)
     
     @staticmethod
+    def create_transport_config(db: Session, trans_config_data: dict):
+        return TransportConfiguration(**trans_config_data)
+    
+    @staticmethod
+    def update_transport_config(db: Session, config_id, config_update_data: dict):
+        trans_conf = TransportConfiguration.get_transport_config_by_id(db, config_id)
+        for key, value in config_update_data.items():
+            setattr(trans_conf, key, value)
+        return trans_conf
+        
+    @staticmethod
     def get_transport_config_by_id(db: Session, config_id):
         return TransportConfiguration.transport_config_object(db).get(config_id)
     
@@ -267,7 +278,28 @@ class TransportConfiguration(Base):
     @staticmethod    
     def get_transport_config_by_trans_state(db: Session, client_id, trans_state):
         return TransportConfiguration.transport_config_object(db).filter_by(
-            client_id = client_id, trans_state = trans_state   
+            client_id = client_id, transport_state = trans_state   
+        ).first()
+        
+    @staticmethod
+    def get_transport_cconfig_by_channel_id(db: Session, client_id, channel_id):
+        return TransportConfiguration.transport_config_object(db).filter_by(
+            client_id = client_id, trans_channel_id=channel_id
+        )
+    
+    @staticmethod
+    def get_transport_configs_by_client_id(db: Session, client_id):
+        return TransportConfiguration.transport_config_object(db).filter_by(
+            client_id=client_id)
+        
+    @staticmethod
+    def get_transport_configs(db: Session):
+        return TransportConfiguration.transport_config_object(db)
+    
+    @staticmethod
+    def check_trans_config_by_channel_id(db: Session, client_id, channel_id):
+        return TransportConfiguration.transport_config_object(db).filter_by(
+            client_id = client_id, trans_channel_id = channel_id
         ).first()
     
     

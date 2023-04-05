@@ -50,5 +50,4 @@ class NotificationUpdateSchema(BaseModel):
             raise ValueError("Value must be True or False")
         return v
     
-    
-# make it fault
+class TransportConfigSchema(BaseModel)
