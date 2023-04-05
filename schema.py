@@ -1,7 +1,7 @@
 # Schemas
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import validator, EmailStr, Field
-from typing import List, Optional
+from typing import List, Optional, Dict, Union
 
 
 class BaseModel(PydanticBaseModel):
@@ -50,4 +50,20 @@ class NotificationUpdateSchema(BaseModel):
             raise ValueError("Value must be True or False")
         return v
     
-class TransportConfigSchema(BaseModel)
+class TransportConfigSchema(BaseModel):
+    client_id: int
+    trans_channel_id: int
+    trans_method: str
+    trans_config: Dict[str, Union[str, int]]
+    
+class TransportConfigUpdateSchema(BaseModel):
+    trans_config: Optional[Dict[str, Union[str, int]]] = None
+    transport_state: bool =None
+    
+    @validator('transport_state')
+    def validate_transport_state(cls, v):
+        if v not in (True, False):
+            raise ValueError("Value must be True or False")
+        return v
+
+    

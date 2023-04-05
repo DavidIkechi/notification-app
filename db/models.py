@@ -239,7 +239,7 @@ class TransportConfiguration(Base):
     trans_channel_id = Column(Integer, ForeignKey('transport_channel.id', ondelete='CASCADE'))
     trans_method = Column(String(255), ForeignKey('channel_transport_type.slug'), index = True, nullable=False)
     trans_config = Column(JSON, nullable=False)
-    transport_state = Column(Boolean, nullable=False, default=True)
+    transport_state = Column(Boolean, default=True)
     # created and updated at.
     created_at = Column(TIMESTAMP(timezone=True),
                         default = datetime.utcnow(), nullable=False)
@@ -279,7 +279,7 @@ class TransportConfiguration(Base):
     def get_transport_config_by_trans_state(db: Session, client_id, trans_state):
         return TransportConfiguration.transport_config_object(db).filter_by(
             client_id = client_id, transport_state = trans_state   
-        ).first()
+        )
         
     @staticmethod
     def get_transport_cconfig_by_channel_id(db: Session, client_id, channel_id):
@@ -293,14 +293,9 @@ class TransportConfiguration(Base):
             client_id=client_id)
         
     @staticmethod
-    def get_transport_configs(db: Session):
+    def retrieve_transport_configs(db: Session):
         return TransportConfiguration.transport_config_object(db)
     
-    @staticmethod
-    def check_trans_config_by_channel_id(db: Session, client_id, channel_id):
-        return TransportConfiguration.transport_config_object(db).filter_by(
-            client_id = client_id, trans_channel_id = channel_id
-        ).first()
     
     
     
