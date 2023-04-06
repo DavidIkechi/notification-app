@@ -54,10 +54,10 @@ class TransportConfigSchema(BaseModel):
     client_id: int
     trans_channel_id: int
     trans_method: str
-    trans_config: Dict[str, Union[str, int]]
+    trans_config: Dict[str, Union[bool, int, str]]
     
 class TransportConfigUpdateSchema(BaseModel):
-    trans_config: Optional[Dict[str, Union[str, int]]] = None
+    trans_config: Optional[Dict[str, Union[bool, int, str]]] = None
     transport_state: bool =None
     
     @validator('transport_state')
