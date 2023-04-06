@@ -20,7 +20,7 @@ class Client(Base):
                         onupdate=datetime.utcnow(), nullable=False)
     # relationship
     noti_sample = relationship('NotificationSample', back_populates='client')
-    
+    trans_config = relationship('TransportConfiguration', back_populates='client')
     
     # get the client object
     @staticmethod
@@ -68,7 +68,8 @@ class TransportChannel(Base):
     # relationship.
     noti_sample = relationship('NotificationSample', back_populates='trans_channel')
     channel_trans = relationship('ChannelTransportType', back_populates='trans_channel')
-    
+    trans_config = relationship('TransportConfiguration', back_populates='trans_channel')
+
     # start defining the static methods.
     @staticmethod
     def get_transport_channel_object(db: Session):
@@ -228,9 +229,77 @@ class ChannelTransportType(Base):
     @staticmethod
     def get_channel_trans_param_by_slug(db: Session, gateway_slug: str):
         return ChannelTransportType.get_channel_transport_object(db).filter_by(
-            slug = gateway_slug).first()  
+            slug = gateway_slug).first()
+        
+        
+class TransportConfiguration(Base):
+    __tablename__ =  "transport_configuration"
+    id = Column(Integer, primary_key=True, index = True)
+    client_id = Column(Integer, ForeignKey('client.id', ondelete='CASCADE'))
+    trans_channel_id = Column(Integer, ForeignKey('transport_channel.id', ondelete='CASCADE'))
+    trans_method = Column(String(255), ForeignKey('channel_transport_type.slug'), index = True, nullable=False)
+    trans_config = Column(JSON, nullable=False)
+    transport_state = Column(Boolean, default=True)
+    # created and updated at.
+    created_at = Column(TIMESTAMP(timezone=True),
+                        default = datetime.utcnow(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        default=datetime.utcnow(), 
+                        onupdate=datetime.utcnow(), nullable=False)
+    # creating the relationship.
+    client = relationship('Client', back_populates='trans_config')
+    trans_channel = relationship('TransportChannel', back_populates='trans_config')
+    # creating static methods.
+    @staticmethod
+    def transport_config_object(db: Session):
+        return db.query(TransportConfiguration)
+    
+    @staticmethod
+    def create_transport_config(db: Session, trans_config_data: dict):
+        return TransportConfiguration(**trans_config_data)
+    
+    @staticmethod
+    def update_transport_config(db: Session, config_id, config_update_data: dict):
+        trans_conf = TransportConfiguration.get_transport_config_by_id(db, config_id)
+        for key, value in config_update_data.items():
+            setattr(trans_conf, key, value)
+        return trans_conf
+        
+    @staticmethod
+    def get_transport_config_by_id(db: Session, config_id):
+        return TransportConfiguration.transport_config_object(db).get(config_id)
+    
+    @staticmethod
+    def get_transport_config_by_method(db: Session, client_id, trans_method):
+        return TransportConfiguration.transport_config_object(db).filter_by(
+            client_id = client_id, trans_method = trans_method   
+        ).first()
+    
+    @staticmethod    
+    def get_transport_config_by_trans_state(db: Session, client_id, trans_state):
+        return TransportConfiguration.transport_config_object(db).filter_by(
+            client_id = client_id, transport_state = trans_state   
+        )
+        
+    @staticmethod
+    def get_transport_cconfig_by_channel_id(db: Session, client_id, channel_id):
+        return TransportConfiguration.transport_config_object(db).filter_by(
+            client_id = client_id, trans_channel_id=channel_id
+        )
+    
+    @staticmethod
+    def get_transport_configs_by_client_id(db: Session, client_id):
+        return TransportConfiguration.transport_config_object(db).filter_by(
+            client_id=client_id)
+        
+    @staticmethod
+    def retrieve_transport_configs(db: Session):
+        return TransportConfiguration.transport_config_object(db)
     
     
+    
+    
+        
 
     
     
