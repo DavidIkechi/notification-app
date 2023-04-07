@@ -21,7 +21,8 @@ class Client(Base):
     # relationship
     noti_sample = relationship('NotificationSample', back_populates='client')
     trans_config = relationship('TransportConfiguration', back_populates='client')
-    
+    active_channel_config = relationship('ActiveChannelClientConfig', back_populates='client')
+
     # get the client object
     @staticmethod
     def get_client_object(db: Session):
@@ -69,6 +70,7 @@ class TransportChannel(Base):
     noti_sample = relationship('NotificationSample', back_populates='trans_channel')
     channel_trans = relationship('ChannelTransportType', back_populates='trans_channel')
     trans_config = relationship('TransportConfiguration', back_populates='trans_channel')
+    active_channel_config = relationship('ActiveChannelClientConfig', back_populates='trans_channel')
 
     # start defining the static methods.
     @staticmethod
@@ -249,6 +251,7 @@ class TransportConfiguration(Base):
     # creating the relationship.
     client = relationship('Client', back_populates='trans_config')
     trans_channel = relationship('TransportChannel', back_populates='trans_config')
+    active_channel_config = relationship('ActiveChannelClientConfig', back_populates='trans_config')
     # creating static methods.
     @staticmethod
     def transport_config_object(db: Session):
@@ -296,6 +299,61 @@ class TransportConfiguration(Base):
     def retrieve_transport_configs(db: Session):
         return TransportConfiguration.transport_config_object(db)
     
+
+class ActiveChannelClientConfig(Base):
+    __tablename__ = "active_channel_client_config"
+    id = Column(Integer, primary_key=True, index=True)
+    client_id = Column(Integer, ForeignKey('client.id', ondelete='CASCADE'))
+    trans_channel_id = Column(Integer, ForeignKey('transport_channel.id', ondelete='CASCADE'))
+    trans_config_id = Column(Integer, ForeignKey('transport_configuration.id', ondelete='CASCADE'))
+    # created and updated at.
+    created_at = Column(TIMESTAMP(timezone=True),
+                        default = datetime.utcnow(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        default=datetime.utcnow(), 
+                        onupdate=datetime.utcnow(), nullable=False)
+    # relationships
+    client = relationship('Client', back_populates='active_channel_config')
+    trans_channel = relationship('TransportChannel', back_populates='active_channel_config')
+    trans_config = relationship('TransportConfiguration', back_populates='active_channel_config')
+    
+    # static methods.
+    @staticmethod
+    def active_channel_client_object(db: Session):
+        return db.query(ActiveChannelClientConfig)
+    
+    @staticmethod
+    def get_active_channel_by_id(db: Session, active_id: int):
+        return ActiveChannelClientConfig.active_channel_client_object(db).get(active_id)
+    
+    @staticmethod
+    def get_active_channel_by_client_id(db: Session, client_id: int):
+        return ActiveChannelClientConfig.active_channel_client_object(db).filter_by(
+            client_id = client_id).all()
+        
+    @staticmethod
+    def get_active_channel_by_trans_config_id(db: Session, trans_config_id: int):
+        return ActiveChannelClientConfig.active_channel_client_object(db).filter_by(
+            trans_config_id = trans_config_id).first()
+    
+    @staticmethod
+    def retrieve_active_channels(db: Session):
+        return ActiveChannelClientConfig.active_channel_client_object(db)
+    
+    @staticmethod
+    def retrieve_active_channels_by_trans_channel(db: Session, trans_channel_id: int):
+        return ActiveChannelClientConfig.active_channel_client_object(db).filter_by(
+            trans_channel_id = trans_channel_id)
+    
+    @staticmethod
+    def get_active_channel_by_client_tran_id(db: Session, client_id: int, trans_channel_id: int):
+        return ActiveChannelClientConfig.active_channel_client_object(db).filter_by(
+            client_id= client_id, trans_channel_id= trans_channel_id).first()
+        
+    @staticmethod
+    def create_active_channel(db: Session, active_client_data: dict):
+        return ActiveChannelClientConfig(**active_client_data)
+        
     
     
     
