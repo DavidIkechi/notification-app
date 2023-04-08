@@ -348,7 +348,7 @@ class ActiveChannelClientConfig(Base):
     @staticmethod
     def get_active_channel_by_client_tran_id(db: Session, client_id: int, trans_channel_id: int):
         return ActiveChannelClientConfig.active_channel_client_object(db).filter_by(
-            client_id= client_id, trans_channel_id= trans_channel_id).first()
+            client_id= client_id, trans_channel_id= trans_channel_id)
         
     @staticmethod
     def create_active_channel(db: Session, active_client_data: dict):
