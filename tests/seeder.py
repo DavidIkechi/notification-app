@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 import sys
 sys.path.append("..")
+import uuid
 
 # functions to populate models
 def seed_transport_channel(db: Session):
@@ -50,4 +51,44 @@ def seed_channel_transport(db: Session):
         db.commit()
         
         
+def seed_client(db: Session):
+    from db.models import Client
+    client_data = [
+        {'slug': 'client-f','client_key': str(uuid.uuid4())}
+    ]
+    
+    if Client.get_client_object(db).count() == 0:
+        client_instance = [Client(**client) for client in client_data]
+        db.add_all(client_instance)
+        db.commit()
+    
+
+def seed_notification_sample(db: Session):
+    from db.models import NotificationSample
+
+    noti_data = [
+        {'client_id': 1, 'trans_channel_id': 1, 'noti_type_id': 1, 'sender_id': 'Intutitve', 'message_body': "You are welcome"},
+        {'client_id': 1, 'trans_channel_id': 2, 'noti_type_id': 2, 'sender_id': 'Intutitve', 'message_body': "An account just signed in"}
+    ]
+    if NotificationSample.noti_sample_object(db).count() == 0:
+        noti_instance = [NotificationSample(**noti) for noti in noti_data]
+        db.add_all(noti_instance)
+        db.commit() 
         
+def seed_transport_configuration(db: Session):
+    from db.models import TransportConfiguration
+
+    config_data = [
+        {"client_id": 1, "trans_channel_id": 1, "trans_method": "smtp-email", "trans_config":
+            {"mail_server": "smtp.google.com", "mail_username": "intuitive",
+             "mail_password": "intuitive", "smtp_port": 567,
+             "mail_tls": True, "mail_ssl": False}},
+        {"client_id": 1, "trans_channel_id": 2, "trans_method": "twilio-sms", "trans_config":
+            {"account_sid": "3ewfsrdsvehs", "auth_token": "er34ttedgu34ug",
+             "sender_number": "8085463728"}}
+    ]
+    
+    if TransportConfiguration.transport_config_object(db).count() == 0:
+        trans_config_instance = [TransportConfiguration(**config) for config in config_data]
+        db.add_all(trans_config_instance)
+        db.commit()        
