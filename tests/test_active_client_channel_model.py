@@ -71,8 +71,6 @@ def test_get_active_client_by_client_trans_channel_id(get_session):
     assert get_client_config.trans_config.trans_method == "smtp-email"
     assert get_client_config.trans_config.trans_config == {"mail_server": "smtp.google.com", "mail_username": "intuitive", "mail_password": "intuitive", "smtp_port": 567,
                                                            "mail_tls": True, "mail_ssl": False}
-    # check if the para
-
     
 
 
