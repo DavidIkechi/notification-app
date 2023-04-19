@@ -374,13 +374,13 @@ class NotificationHistory(Base):
     carbon_copy = Column(JSON, nullable=True, default=[])
     blind_copy = Column(JSON, nullable=True, default=[])
     # when it was sent.
-    rabbit_identifier = Column(String(255), nullable=True, unique=True)
+    rabbit_id = Column(String(255), nullable=True, unique=True)
     sent_at = Column(TIMESTAMP(timezone=True),
                      default = datetime.utcnow(), nullable=False)
     status = Column(Enum(current_status), nullable=False, default = current_status.QUEUED)
     message_status = Column(String(255), nullable=True)
-    scheduled_at = Column(TIMESTAMP(timezone=True), nullable=True)
-    
+    scheduled_at = Column(TIMESTAMP(timezone=True),
+                          default = datetime.utcnow(), nullable=False)
     # creating the relationship for the foreign keys.
     client = relationship('Client', back_populates='noti_history')
     trans_channel = relationship('TransportChannel', back_populates='noti_history')
@@ -407,10 +407,14 @@ class NotificationHistory(Base):
     
     @staticmethod
     def update_notification_history(db: Session, history_id, noti_update_data: dict):
-        noti_history = NotificationHistory.get_history_by_id(db, noti_id)
+        noti_history = NotificationHistory.get_noti_history_by_id(db, history_id)
         for key, value in noti_update_data.items():
             setattr(noti_history, key, value)
-        return noti_history 
+        return noti_history
+    
+    @staticmethod
+    def retrieve_noti_histories(db: Session):
+        return NotificationHistory.notification_history_object(db) 
     
     
     

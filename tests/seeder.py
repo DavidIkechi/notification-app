@@ -91,4 +91,18 @@ def seed_transport_configuration(db: Session):
     if TransportConfiguration.transport_config_object(db).count() == 0:
         trans_config_instance = [TransportConfiguration(**config) for config in config_data]
         db.add_all(trans_config_instance)
-        db.commit()        
+        db.commit()
+    
+def seed_active_channel_client_config(db: Session):
+    from db.models import ActiveChannelClientConfig
+    
+    active_config = [
+        {'client_id': 1, 'trans_channel_id': 1, 'trans_config_id': 1},
+        {'client_id': 1, 'trans_channel_id': 2, 'trans_config_id': 2}
+    ]
+    
+    if ActiveChannelClientConfig.active_channel_client_object(db).count() == 0:
+        active_instance = [ActiveChannelClientConfig(**config) for  config in active_config]
+        db.add_all(active_instance)
+        db.commit()
+        
