@@ -7,6 +7,8 @@ from db.session import engine, Base, get_db
 from db.session import Session as sess
 from main import notification_app 
 from fastapi.testclient import TestClient
+from jobs.job_config import notification_schedule
+from celery import Celery
 
 
 
@@ -41,4 +43,22 @@ def client_instance(db):
     with TestClient(notification_app) as client_instance:
         yield client_instance
         
+
+# configure for rocketry cronjob.
+@pytest.fixture(scope='session')
+def run_cron():
+    notification_schedule.run()
+    yield
+    notification_schedule.stop()
+    
+# configure for the celery.
+@pytest.fixture(scope="session")
+def celery_instance(request):
+    app = Celery('tasks', broker='pyamqp://guest@localhost//')
+    app.conf.update(
+        task_always_eager=True,
+        task_eager_propagates=True,
+        task_ignore_result=True
+    )
+    return app
          

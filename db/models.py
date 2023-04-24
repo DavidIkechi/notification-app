@@ -195,6 +195,12 @@ class NotificationSample(Base):
     def check_noti_sample_by_noti_type(db: Session, client_id, noti_type_id):
         return NotificationSample.noti_sample_object(db).filter_by(
             client_id = client_id, noti_type_id = noti_type_id
+        )
+    
+    @staticmethod
+    def check_noti_sample_by_noti_type_tran(db: Session, client_id, noti_type_id, channel_id):
+        return NotificationSample.noti_sample_object(db).filter_by(
+            client_id = client_id, noti_type_id = noti_type_id, trans_channel_id = channel_id
         ).first()
         
     @staticmethod

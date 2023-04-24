@@ -42,7 +42,7 @@ def seed_channel_transport(db: Session):
         {"id": 3, "channel_id": 2, "gate_way": "NEXMO SMS", "slug": "nexmo-sms",
          "parameters": ["api_key", "secret_key", "sender_number"]},
         {"id": 4, "channel_id": 1, "gate_way": "MAIL GUN EMAIL", "slug": "mail-gun-email",
-         "parameters":["mail_domain", "api_key"]}  
+         "parameters":["mail_domain", "mail_api_key"]}  
     ]
     
     if ChannelTransportType.get_channel_transport_object(db).count() == 0:
@@ -54,7 +54,7 @@ def seed_channel_transport(db: Session):
 def seed_client(db: Session):
     from db.models import Client
     client_data = [
-        {'slug': 'client-f','client_key': str(uuid.uuid4())}
+        {'slug': 'client-f','client_key': "new_key"}
     ]
     
     if Client.get_client_object(db).count() == 0:
@@ -67,8 +67,8 @@ def seed_notification_sample(db: Session):
     from db.models import NotificationSample
 
     noti_data = [
-        {'client_id': 1, 'trans_channel_id': 1, 'noti_type_id': 1, 'sender_id': 'Intutitve', 'message_body': "You are welcome"},
-        {'client_id': 1, 'trans_channel_id': 2, 'noti_type_id': 2, 'sender_id': 'Intutitve', 'message_body': "An account just signed in"}
+        {'client_id': 1, 'trans_channel_id': 1, 'noti_type_id': 1, 'sender_id': 'Intuitive', 'message_body': "Dear {{firstname}}, \n\nYou are welcome"},
+        {'client_id': 1, 'trans_channel_id': 2, 'noti_type_id': 2, 'sender_id': 'Intuitive', 'message_body': "Dear {{firstname}}, \n\nAn account just signed in"}
     ]
     if NotificationSample.noti_sample_object(db).count() == 0:
         noti_instance = [NotificationSample(**noti) for noti in noti_data]

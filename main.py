@@ -1,13 +1,23 @@
 # The main point of call.
 from fastapi import FastAPI, Depends
 from schema import *
-from db.session import Base, Session, engine
+from db.session import Base, engine, Session
+from sqlalchemy.orm import Session as session_local
 from db import models
+from db.session import get_db
 from jobs.job_config import notification_schedule
 from apis.client import client_router
+from apis.notification import notification_router
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn, asyncio
-import os, uuid
+import os, uuid, multiprocessing
+from tests.seeder import (
+    seed_transport_channel,
+    seed_notification_type,
+    seed_channel_transport
+)
+
+# from celery_config import celery_app
 
 # Microservice description
 description = "Notification Application"
@@ -63,16 +73,34 @@ async def main() -> None:
     
     api = asyncio.create_task(server.serve())
     scheduler = asyncio.create_task(notification_schedule.serve())
+
+    # Wait for all tasks to complete
     await asyncio.wait([scheduler, api])
 
-# include router.
+# include client router.
 notification_app.include_router(
     client_router
 )
+
+# include notification router.
+notification_app.include_router(
+    notification_router
+)
+
+@notification_app.on_event("startup")
+async def startup_event():
+    db = Session()
+    seed_transport_channel(db)
+    seed_notification_type(db)
+    seed_channel_transport(db)
+    db.close()
+    
+    
 @notification_app.get("/")
+
 async def ping():
     return {"detail": "Notification Application is up"}
 
 if __name__ == "__main__":
-    # Run both applications
+    # Run the FastAPI app
     asyncio.run(main())

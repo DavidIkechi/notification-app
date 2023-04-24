@@ -83,11 +83,55 @@ def get_all_clients(db, page: int, page_size: int):
         return success_response.success_message(data_result)
         
     except Exception as e:
-        return exceptions.server_error(str(e)) 
-
-        
+        return exceptions.server_error(str(e))
     
- 
+    
+def create_noti_sample(db, client_id, noti_schema):
+    try:
+        # first check if the client_id matches with id passed.
+        if client_id != noti_schema.client_id:
+            return exceptions.bad_request_error("Client ID doesn't match with Authorization ID")
+        # check if the notification sample for that client and channel exists.
+        check_noti = models.NotificationSample.check_noti_sample_by_noti_type_tran(
+            db, client_id, noti_schema.noti_type_id, noti_schema.trans_channel_id)
+        
+        if check_noti is not None:
+            return exceptions.bad_request_error("Notification Sample for Notification Type already exists!")
+        # create the Notification sample.
+        noti_sample = models.NotificationSample.create_noti_sample(db, noti_schema.dict(exclude_unset=True, exclude_none=True))
+        db.add(noti_sample)
+        db.commit()
+
+    except Exception as e:
+        return exceptions.server_error(str(e))
+
+    return success_response.success_message([], "Notification Sample was successfully created!", 201)
+    
+def update_noti_sample(db, client_id: int, noti_id: int, update_noti_data):
+    try:
+        # check if the noti matches the client.
+        check_noti = models.NotificationSample.get_noti_sample_by_id(db, noti_id)
+        if check_noti is None:
+            return exceptions.bad_request_error("Notification with such ID doesn't exists")
+        
+        if check_noti.client_id != client_id:
+            return exceptions.bad_request_error("Client ID is not associated with Notification Sample type")
+        
+        update_noti_field = models.NotificationSample.update_noti_sample(db, noti_id, update_noti_data.dict(exclude_unset=True, exclude_none=True))
+        if not update_noti_field:
+            return exceptions.bad_request_error("An error ocurred while updating Notification Sample, Please try again")
+        # update the data.
+        db.add(update_noti_field)
+        db.commit()
+        db.refresh(update_noti_field)
+        
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message(update_noti_field, "Notification Sample record was successfully updated")
+
+         
+    
 
         
 

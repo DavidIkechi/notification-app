@@ -1,0 +1,3 @@
+{
+    "docker.commands.attach": "${containerCommand} exec -it ${containerId} ${shellCommand}"
+}
