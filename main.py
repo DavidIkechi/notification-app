@@ -14,7 +14,9 @@ import os, uuid, multiprocessing
 from tests.seeder import (
     seed_transport_channel,
     seed_notification_type,
-    seed_channel_transport
+    seed_channel_transport,
+    seed_transport_configuration,
+    seed_active_channel_client_config
 )
 
 # from celery_config import celery_app
@@ -93,6 +95,8 @@ async def startup_event():
     seed_transport_channel(db)
     seed_notification_type(db)
     seed_channel_transport(db)
+    seed_transport_configuration(db)
+    seed_active_channel_client_config(db)
     db.close()
     
     

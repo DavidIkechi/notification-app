@@ -80,8 +80,8 @@ def seed_transport_configuration(db: Session):
 
     config_data = [
         {"client_id": 1, "trans_channel_id": 1, "trans_method": "smtp-email", "trans_config":
-            {"mail_server": "smtp.google.com", "mail_username": "intuitive",
-             "mail_password": "intuitive", "smtp_port": 567,
+            {"mail_server": "smtp.gmail.com", "mail_username": "Intuitive",
+             "mail_password": "heeiovmgrudlmtvi", "smtp_port": 567,
              "mail_tls": True, "mail_ssl": False}},
         {"client_id": 1, "trans_channel_id": 2, "trans_method": "twilio-sms", "trans_config":
             {"account_sid": "3ewfsrdsvehs", "auth_token": "er34ttedgu34ug",

@@ -130,7 +130,36 @@ def update_noti_sample(db, client_id: int, noti_id: int, update_noti_data):
     
     return success_response.success_message(update_noti_field, "Notification Sample record was successfully updated")
 
-         
+def send_notification(db, client_id: int, noti_id: int, sche_variables):
+    try:
+         # check if the noti matches the client.
+        check_noti = models.NotificationSample.get_noti_sample_by_id(db, noti_id)
+        if check_noti is None:
+            return exceptions.bad_request_error("Notification with such ID doesn't exists")
+        
+        if check_noti.client_id != client_id:
+            return exceptions.bad_request_error("Client ID is not associated with Notification Sample type")
+        
+        # check if the notification is disabled.
+        if not check_noti.notification_state:
+            return exceptions.bad_request_error("Notification Sample is disabled!, Please enable to send")
+        # check if the configuration is active.
+        check_config = models.ActiveChannelClientConfig.get_active_channel_by_client_tran_id(
+            db, client_id, check_noti.trans_channel_id
+        ).first()
+        
+        if check_config is None:
+            return exceptions.bad_request_error("No Active Transport Configuration has been set.")
+        # prepare the data;
+        prepared_noti_data = get_noti_data(check_noti, sche_variables)
+        # save the data.
+        store_noti_data = models.NotificationHistory.create_notification_history(db, prepared_noti_data)
+        db.add(store_noti_data)
+        db.commit()
+        return success_response.success_message([], "Notification has been triggered to be sent")
+            
+    except Exception as e:
+        return exceptions.server_error(str(e))
     
 
         

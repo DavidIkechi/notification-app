@@ -3,7 +3,12 @@ from sqlalchemy.orm import Session
 import sys, asyncio
 sys.path.append("..")
 from db.session import get_db
-from schema import NotificationDataSchema, NotificationUpdateSchema
+from schema import (
+    NotificationDataSchema, 
+    NotificationUpdateSchema,
+    NotificationHistorySchema
+)
+
 from crud import app_crud
 from db import models
 from auth import validate_client_key
@@ -42,4 +47,9 @@ async def disable_noti_sample(request: Request, noti_id: int, db: Session = Depe
 async def update_noti_sample(request: Request, noti_id: int, noti_schema: NotificationUpdateSchema, db: Session = Depends(get_db)):
     client_id = request.state.data
     return app_crud.update_noti_sample(db, client_id, noti_id, noti_schema)
+
+@notification_router.post('/send/{noti_id}', summary="Send Notification", status_code=200, dependencies=[Depends(validate_client_key)])
+async def send_notification(request: Request, noti_id: int, sche_variables: NotificationHistorySchema, db: Session = Depends(get_db)):
+    client_id = request.state.data
+    return app_crud.send_notification(db, client_id, noti_id, sche_variables)
 

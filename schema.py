@@ -2,6 +2,8 @@
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import validator, EmailStr, Field
 from typing import List, Optional, Dict, Union
+from datetime import datetime
+from utils import format_datetime
 
 
 class BaseModel(PydanticBaseModel):
@@ -65,5 +67,11 @@ class TransportConfigUpdateSchema(BaseModel):
         if v not in (True, False):
             raise ValueError("Value must be True or False")
         return v
-
     
+class NotificationHistorySchema(BaseModel):
+    scheduled_at: datetime = None
+    noti_variables: Optional[Dict[str, Union[bool, int, str]]] = None
+
+    @validator('scheduled_at', pre=True, always=True)
+    def format_scheduled_at(cls, value):
+        return format_datetime(value) if value else None
