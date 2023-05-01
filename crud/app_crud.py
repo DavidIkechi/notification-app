@@ -150,14 +150,37 @@ def send_notification(db, client_id: int, noti_id: int, sche_variables):
         
         if check_config is None:
             return exceptions.bad_request_error("No Active Transport Configuration has been set.")
+        # check if it is active or not as well
+        if not check_config.trans_config.transport_state:
+            return exceptions.bad_request_error("Transport Gateway is disabled!")
         # prepare the data;
         prepared_noti_data = get_noti_data(check_noti, sche_variables)
         # save the data.
         store_noti_data = models.NotificationHistory.create_notification_history(db, prepared_noti_data)
         db.add(store_noti_data)
         db.commit()
+        db.refresh(store_noti_data)
         return success_response.success_message([], "Notification has been triggered to be sent")
             
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+def update_noti_history(hist_id, update_data):
+    try:
+        # check if the data exists;
+        check_noti_hist = models.NotificationHistory.get_noti_history_by_id(db, hist_id)
+        if check_noti_hist is None:
+            return exceptions.bad_request_error("Notification History with such ID doesn't exists")
+        
+        # proceed to update.
+        update_noti_field = models.NotificationHistory.update_notification_history(db, hist_id, update_data)
+        if not update_noti_field:
+            return exceptions.bad_request_error("An error ocurred while updating Notification History, Please try again")
+        # update the data.
+        db.add(update_noti_field)
+        db.commit()
+        db.refresh(update_noti_field)
+          
     except Exception as e:
         return exceptions.server_error(str(e))
     

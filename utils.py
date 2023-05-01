@@ -6,13 +6,6 @@ import datetime as dt
 # for adding utlity functions
 def get_offset(page: int, page_size: int) -> int:
     return (page - 1) * page_size
-
-# define the enum type for the status.
-class Status(Enum):
-    IN_PROGRESS = 'processing'
-    SUCCESS = 'success'
-    QUEUED = 'queue'
-    FAILED = 'failed'
     
 def exclude_none_values(data):
     """
@@ -28,12 +21,13 @@ def format_datetime(date_value):
 
 def format_text(body_text: str, data: dict):
     # replace new lines with line breaks, to look like html texts.
-    body_text = body_text.replace('\n', '<br>')
+    body_text = fr'{body_text}'
+    new_text = body_text.replace(r'\n', '<br>')
     # start formatting.
-    placeholders = re.findall(r'{{(.*?)}}', body_text)
+    placeholders = re.findall(r'{{(.*?)}}', new_text)
 
     # Replace placeholders with values from the dictionary
-    formatted_text = body_text
+    formatted_text = new_text
     for placeholder in placeholders:
         value = data.get(placeholder.strip(), '')
         formatted_text = formatted_text.replace('{{' + placeholder + '}}', str(value))
@@ -55,29 +49,8 @@ def get_noti_data(noti_sample, schedule_data: dict):
         'sender_email': noti_sample.sender_email,
         'carbon_copy': noti_sample.carbon_copy,
         'blind_copy': noti_sample.blind_copy,
-        'scheduled_at': schedule_data.scheduled_at
+        'scheduled_at': schedule_data.scheduled_at,
+        'recipients': schedule_data.recipients
     }
     
     return exclude_none_values(noti_data)
-    
-    
-    
-# # import pika
-
-# # # Connect to RabbitMQ server
-# # connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-# # channel = connection.channel()
-
-# # # Declare a queue
-# # channel.queue_declare(queue='my_queue')
-# from celery import Celery
-
-# celery_app = Celery(
-#     "myapp",
-#     broker="amqp://guest:guest@localhost:5672//",
-#     backend="rpc://",
-# )
-
-# @celery_app.task
-# def add(x, y):
-#     return x + y

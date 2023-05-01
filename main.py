@@ -19,8 +19,6 @@ from tests.seeder import (
     seed_active_channel_client_config
 )
 
-# from celery_config import celery_app
-
 # Microservice description
 description = "Notification Application"
 tags_metadata =[
@@ -96,7 +94,7 @@ async def startup_event():
     seed_notification_type(db)
     seed_channel_transport(db)
     seed_transport_configuration(db)
-    seed_active_channel_client_config(db)
+    seed_active_channel_client_config
     db.close()
     
     

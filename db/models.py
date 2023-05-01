@@ -7,7 +7,6 @@ from datetime import datetime
 from sqlalchemy.sql import text
 import sys
 sys.path.append("..")
-from utils import Status as current_status
 
 
 # Client Table.
@@ -379,11 +378,12 @@ class NotificationHistory(Base):
     sender_email = Column(String(255), nullable=True)
     carbon_copy = Column(JSON, nullable=True, default=[])
     blind_copy = Column(JSON, nullable=True, default=[])
+    recipients= Column(JSON, nullable=False)
+
     # when it was sent.
     rabbit_id = Column(String(255), nullable=True, unique=True)
-    sent_at = Column(TIMESTAMP(timezone=True),
-                     default = datetime.utcnow(), nullable=False)
-    status = Column(Enum(current_status), nullable=False, default = current_status.QUEUED)
+    sent_at = Column(TIMESTAMP(timezone=True),nullable=True)
+    status = Column(String(100), nullable=False, default = "QUEUED")
     message_status = Column(String(255), nullable=True)
     scheduled_at = Column(TIMESTAMP(timezone=True),
                           default = datetime.utcnow(), nullable=False)

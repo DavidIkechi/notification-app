@@ -7,7 +7,7 @@ from .seeder import (
 )
 import sys
 sys.path.append("..")
-from utils import exclude_none_values, Status
+from utils import exclude_none_values
 from db.models import NotificationHistory, NotificationSample
 from schema import *
 import os
@@ -38,7 +38,8 @@ def test_create_noti_history(get_session):
         'sender_id': noti_sample.sender_id,
         'sender_email': noti_sample.sender_email,
         'carbon_copy': noti_sample.carbon_copy,
-        'blind_copy': noti_sample.blind_copy
+        'blind_copy': noti_sample.blind_copy,
+        'recipients': ['davidakwuruu@gmail.com']
     }
     
     # exclude none values
@@ -58,7 +59,7 @@ def test_create_noti_history(get_session):
     # check if it was added
     get_noti_history = NotificationHistory.get_noti_history_by_id(get_session, 1)
     assert get_noti_history is not None
-    assert get_noti_history.status.value == "queue"
+    assert get_noti_history.status == "QUEUED"
     assert get_noti_history.message_status is None 
     assert get_noti_history.rabbit_id is None
     
@@ -86,7 +87,8 @@ def test_update_noti_history(get_session):
         'sender_id': noti_sample.sender_id,
         'sender_email': noti_sample.sender_email,
         'carbon_copy': noti_sample.carbon_copy,
-        'blind_copy': noti_sample.blind_copy
+        'blind_copy': noti_sample.blind_copy,
+        'recipients': ['davidakwuruu@gmail.com']
     }
     
     # exclude none values
@@ -98,15 +100,19 @@ def test_update_noti_history(get_session):
     # check if it was added
     get_noti_history = NotificationHistory.get_noti_history_by_id(get_session, 1)
     assert get_noti_history is not None
-    assert get_noti_history.status.value == "queue"
+    assert get_noti_history.status == "QUEUED"
     assert get_noti_history.message_status is None 
     assert get_noti_history.rabbit_id is None
+    assert get_noti_history.recipients == ['davidakwuruu@gmail.com']
+
     
     # update data.
     update_noti_data = {
         "message_status": "Sent Successfully",
-        "status": Status.SUCCESS,
-        "rabbit_id": str(uuid.uuid4())
+        "status": "SUCCESS",
+        "rabbit_id": str(uuid.uuid4()),
+        'recipients': ['davidakwuruu@gmail.com', 'emmanuelakwuru@gmail.com']
+
     }
     
     update_noti = NotificationHistory.update_notification_history(get_session, 1, update_noti_data)
@@ -114,6 +120,8 @@ def test_update_noti_history(get_session):
     get_session.commit()
     get_noti_history = NotificationHistory.get_noti_history_by_id(get_session, 1)
     assert get_noti_history is not None
-    assert get_noti_history.status.value == "success"
+    assert get_noti_history.status == "SUCCESS"
     assert get_noti_history.message_status == "Sent Successfully" 
     assert get_noti_history.rabbit_id == update_noti_data['rabbit_id']
+    assert get_noti_history.recipients == ['davidakwuruu@gmail.com', 'emmanuelakwuru@gmail.com']
+
