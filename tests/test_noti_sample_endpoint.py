@@ -13,7 +13,7 @@ from schema import (
     NotificationDataSchema, 
     NotificationUpdateSchema
 )
-import uuid
+import uuid, json
 from fastapi import status
 # from fastapi.testclient import TestClient
 # from apis.client import client_router
@@ -22,8 +22,8 @@ import logging
 
 def get_notification_data() -> list:
     noti_data = [
-        {'client_id': 1, 'trans_channel_id': 1, 'noti_type_id': 1, 'sender_id': 'Intutitve', 'message_body': "Dear {{first_name}}, You are welcome"},
-        {'client_id': 1, 'trans_channel_id': 2, 'noti_type_id': 2, 'sender_id': 'Intutitve', 'message_body': "Dear {{first_name}}, An account just signed in"}
+        {'client_slug': 'client-f', 'trans_channel_slug': 'email', 'noti_type_slug': 'welcome', 'sender_id': 'Intutitve', 'message_body': "Dear {{first_name}}, You are welcome"},
+        {'client_slug': 'client-f', 'trans_channel_slug': 'sms', 'noti_type_slug': 'login', 'sender_id': 'Intutitve', 'message_body': "Dear {{first_name}}, An account just signed in"}
     ]
     
     return noti_data
@@ -115,10 +115,55 @@ def test_update_noti_sample_endpoint(get_session, client_instance):
     get_sample = NotificationSample.get_noti_sample_by_id(get_session, 1)
     assert get_sample.sender_id == "Genesis Studio"
     assert get_sample.sender_email == "davidakwuruu@gmail.com"
-     
     
+def test_get_single_notification(get_session, client_instance):
+    # seed the table with data.
+    seed_client(get_session)
+    seed_transport_channel(get_session)
+    seed_notification_type(get_session)
+    seed_notification_sample(get_session)
+    # header.
+    headers = {
+        "Client-Authorization": "new_key"
+    }
+    # update the notification sample with necessary information.
+    noti_response = client_instance.get(f'/notification/single/1', headers=headers)
+    # force commit after updating.
+    get_session.commit() 
+    assert noti_response.status_code == 200
+    
+def test_get_all_client_notification(get_session, client_instance):
+    # seed the table with data.
+    seed_client(get_session)
+    seed_transport_channel(get_session)
+    seed_notification_type(get_session)
+    seed_notification_sample(get_session)
+    # header.
+    headers = {
+        "Client-Authorization": "new_key"
+    }
 
+    noti_response = client_instance.get("/notification/", headers=headers)    # assert len(noti_response.json()['data']['items'])== 2
+    assert noti_response.status_code == 200
+    assert len(noti_response.json()['data']['items'])== 2
     
-    
-    
+def test_get_all_client_notification(get_session, client_instance):
+    # seed the table with data.
+    seed_client(get_session)
+    seed_transport_channel(get_session)
+    seed_notification_type(get_session)
+    seed_notification_sample(get_session)
+    # header.
+    headers = {
+        "Client-Authorization": "new_key"
+    }
+    params = {
+        "page": 1,
+        "page_size": 10,
+        "trans_type":"email"
+    }
+    noti_response = client_instance.get("/notification/", headers=headers, params=params)    # assert len(noti_response.json()['data']['items'])== 2
+    assert noti_response.status_code == 200
+    assert len(noti_response.json()['data']['items'])== 1
+
     

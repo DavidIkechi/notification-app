@@ -26,16 +26,23 @@ class UpdateStatusSchema(BaseModel):
 class UpdateClientKeySchema(BaseModel):
     client_key: str
     
-class NotificationDataSchema(BaseModel):
-    client_id: int
-    trans_channel_id: int
-    noti_type_id: int
+class NotificationData(BaseModel):
     message_body: str
     subject: str = Field(None, max_length=100) 
     sender_id: str
     sender_email: EmailStr = None
     carbon_copy: Optional[List[EmailStr]] = None
     blind_copy: Optional[List[EmailStr]] = None
+    
+class NotificationDataSchema(NotificationData):
+    client_id: int
+    trans_channel_id: int
+    noti_type_id: int
+    
+class NotificationDataEndpointSchema(NotificationData):
+    client_slug: str
+    trans_channel_slug: str
+    noti_type_slug: str
     
 class NotificationUpdateSchema(BaseModel):
     message_body: str = None
@@ -72,6 +79,7 @@ class NotificationHistorySchema(BaseModel):
     scheduled_at: datetime = None
     noti_variables: Optional[Dict[str, Union[bool, int, str, List]]] = None
     recipients: List[str]
+    noti_type_slug: str
     
     @validator('scheduled_at', pre=True, always=True)
     def format_scheduled_at(cls, value):
@@ -79,3 +87,6 @@ class NotificationHistorySchema(BaseModel):
     
 class EmailSchema(BaseModel):
     body: Dict[str, Any]
+    
+class NotificationType(BaseModel):
+    trans_type: str = None

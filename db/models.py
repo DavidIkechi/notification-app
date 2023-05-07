@@ -381,7 +381,7 @@ class NotificationHistory(Base):
     recipients= Column(JSON, nullable=False)
 
     # when it was sent.
-    rabbit_id = Column(String(255), nullable=True, unique=True)
+    message_id = Column(String(255), nullable=True, unique=True)
     sent_at = Column(TIMESTAMP(timezone=True),nullable=True)
     status = Column(String(100), nullable=False, default = "QUEUED")
     message_status = Column(String(255), nullable=True)

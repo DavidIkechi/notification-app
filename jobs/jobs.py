@@ -7,9 +7,6 @@ from crud.app_crud import update_noti_history
 
 from datetime import datetime
 from sqlalchemy import and_, or_, not_
-from transport_config import (
-    trans_configuration
-)
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.pool import StaticPool, NullPool
 from sqlalchemy import create_engine
@@ -34,7 +31,7 @@ def send_notification():
         get_unsent_noti = (
             models.NotificationHistory.notification_history_object(db).filter(
                 and_(
-                    models.NotificationHistory.rabbit_id.is_(None),
+                    models.NotificationHistory.message_id.is_(None),
                     models.NotificationHistory.scheduled_at <= datetime.utcnow(),
                     )).all()
             )
@@ -59,7 +56,7 @@ def send_notification():
             send_task = send_message.apply_async(args=[channel_type, trans_type, new_noti, trans_data])
             # update the data.
             cron_data = {
-                "rabbit_id": str(send_task),
+                "message_id": str(send_task),
                 "status": send_task.status
             }
             # print(db)
@@ -72,7 +69,7 @@ def update_notification():
     try:
         db = initialized_db()
         pushed_noti = (models.NotificationHistory.notification_history_object(db)
-                       .filter(and_(models.NotificationHistory.rabbit_id.isnot(None),
+                       .filter(and_(models.NotificationHistory.message_id.isnot(None),
                                     not_(or_(models.NotificationHistory.status == 'SUCCESS',
                                              models.NotificationHistory.status == 'FAILURE')
                                          )
@@ -84,7 +81,7 @@ def update_notification():
         for noti in pushed_noti:
             update_data = {}
             # get the id.
-            task_id = noti.rabbit_id
+            task_id = noti.message_id
             # check the status of things.
             result = AsyncResult(task_id)
             if result.ready():

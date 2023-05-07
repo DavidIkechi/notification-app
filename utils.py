@@ -14,7 +14,7 @@ def exclude_none_values(data):
     return {k: v for k, v in data.items() if v is not None}
 
 def format_datetime(date_value):
-    formatted_date = datetime.strptime(date_value, "%Y-%m-%dT%H:%M:%S.%fZ")
+    formatted_date = datetime.strptime(date_value, "%Y-%m-%d %H:%M:%S")
     # Format the datetime object as a string without the T and Z characters
     return formatted_date.strftime("%Y-%m-%d %H:%M:%S.%f")
 

@@ -67,8 +67,8 @@ def seed_notification_sample(db: Session):
     from db.models import NotificationSample
 
     noti_data = [
-        {'client_id': 1, 'trans_channel_id': 1, 'noti_type_id': 1, 'sender_id': 'Intuitive', 'message_body': "Dear {{firstname}}, \n\nYou are welcome"},
-        {'client_id': 1, 'trans_channel_id': 2, 'noti_type_id': 2, 'sender_id': 'Intuitive', 'message_body': "Dear {{firstname}}, \n\nAn account just signed in"}
+        {'id':1, 'client_id': 1, 'trans_channel_id': 1, 'noti_type_id': 1, 'sender_id': 'Intuitive', 'message_body': "Dear {{firstname}}, \n\nYou are welcome"},
+        {'id':2, 'client_id': 1, 'trans_channel_id': 2, 'noti_type_id': 2, 'sender_id': 'Intuitive', 'message_body': "Dear {{firstname}}, \n\nAn account just signed in"}
     ]
     if NotificationSample.noti_sample_object(db).count() == 0:
         noti_instance = [NotificationSample(**noti) for noti in noti_data]
@@ -85,6 +85,9 @@ def seed_transport_configuration(db: Session):
              "mail_tls": True, "mail_ssl": False}},
         {"client_id": 1, "trans_channel_id": 2, "trans_method": "twilio-sms", "trans_config":
             {"account_sid": "3ewfsrdsvehs", "auth_token": "er34ttedgu34ug",
+             "sender_number": "8085463728"}},
+        {"client_id": 1, "trans_channel_id": 2, "trans_method": "nexmo-sms", "trans_config":
+            {"api_key": "3ewfsrdsvehs", "secret_key": "er34ttedgu34ug",
              "sender_number": "8085463728"}}
     ]
     
@@ -98,11 +101,28 @@ def seed_active_channel_client_config(db: Session):
     
     active_config = [
         {'client_id': 1, 'trans_channel_id': 1, 'trans_config_id': 1},
-        {'client_id': 1, 'trans_channel_id': 2, 'trans_config_id': 2}
+        {'client_id': 1, 'trans_channel_id': 2, 'trans_config_id': 3}
     ]
     
     if ActiveChannelClientConfig.active_channel_client_object(db).count() == 0:
         active_instance = [ActiveChannelClientConfig(**config) for  config in active_config]
         db.add_all(active_instance)
         db.commit()
-        
+     
+def seed_noti_history(db: Session):
+    from db.models import NotificationHistory
+    
+    noti_hist_data = [
+        {'id':1, 'client_id':1, 'trans_channel_id':1, 'noti_type_id': 1, 'message_body':'Dear User, <br> You are testing email',
+         'subject':'Testing Email', 'sender_email': 'abc@gmail.com', 'sender_id': 'Intuitive test',
+         'recipients': ['abcd@gmail.comm']},
+        {'id':2, 'client_id':1, 'trans_channel_id':2, 'noti_type_id': 1, 'message_body':'Dear User, <br> You are testing sms',
+         'subject':'Testing SMS', 'sender_id': 'Intuitive test',
+         'recipients': ['234']
+        }
+    ]  
+    
+    if NotificationHistory.notification_history_object(db).count() == 0:
+        active_instance = [NotificationHistory(**noti) for  noti in noti_hist_data]
+        db.add_all(active_instance)
+        db.commit() 

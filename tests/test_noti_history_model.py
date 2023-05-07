@@ -61,7 +61,7 @@ def test_create_noti_history(get_session):
     assert get_noti_history is not None
     assert get_noti_history.status == "QUEUED"
     assert get_noti_history.message_status is None 
-    assert get_noti_history.rabbit_id is None
+    assert get_noti_history.message_id is None
     
 
 def test_update_noti_history(get_session):
@@ -102,7 +102,7 @@ def test_update_noti_history(get_session):
     assert get_noti_history is not None
     assert get_noti_history.status == "QUEUED"
     assert get_noti_history.message_status is None 
-    assert get_noti_history.rabbit_id is None
+    assert get_noti_history.message_id is None
     assert get_noti_history.recipients == ['davidakwuruu@gmail.com']
 
     
@@ -110,7 +110,7 @@ def test_update_noti_history(get_session):
     update_noti_data = {
         "message_status": "Sent Successfully",
         "status": "SUCCESS",
-        "rabbit_id": str(uuid.uuid4()),
+        "message_id": str(uuid.uuid4()),
         'recipients': ['davidakwuruu@gmail.com', 'emmanuelakwuru@gmail.com']
 
     }
@@ -122,6 +122,6 @@ def test_update_noti_history(get_session):
     assert get_noti_history is not None
     assert get_noti_history.status == "SUCCESS"
     assert get_noti_history.message_status == "Sent Successfully" 
-    assert get_noti_history.rabbit_id == update_noti_data['rabbit_id']
+    assert get_noti_history.message_id == update_noti_data['message_id']
     assert get_noti_history.recipients == ['davidakwuruu@gmail.com', 'emmanuelakwuru@gmail.com']
 

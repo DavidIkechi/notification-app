@@ -1,11 +1,16 @@
 from celery import Celery, Task
-from transport_config import *
+# from transport_config import *
 from fastapi import BackgroundTasks
 import asyncio
 from datetime import datetime
 from fastapi.responses import JSONResponse
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
+import sys
+sys.path.append("..")
+from providers.sms.main import SMSGate
+from providers.email.main import EmailGate
+
 
 
 celery_app = Celery(
@@ -28,13 +33,12 @@ class MyCustomException(BaseException):
 @celery_app.task(track_started=True, bind=True)
 def send_message(self, channel_type, transport_type, noti_data, trans_data):
     try: 
-        config_object = trans_configuration(channel_type, transport_type, trans_data)
         if channel_type.lower() == "email":
-            response = asyncio.run(send_email(transport_type= transport_type, 
-                                            noti_data = noti_data, config_object=config_object, 
-                                            trans_data=trans_data))
+            email_object = EmailGate(transport_type, trans_data)
+            response = asyncio.run(email_object.send_email(noti_data, trans_data))
         elif channel_type.lower() == "sms":
-            response = asyncio.run(send_sms(transport_type, noti_data, config_object, trans_data))
+            sms_object = SMSGate(transport_type, trans_data)
+            response = asyncio.run(sms_object.send_sms(noti_data, trans_data))
         
         return {'result': 'Notification has been sent successfully', 
                 'completion_time': datetime.utcnow()}
