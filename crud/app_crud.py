@@ -276,7 +276,38 @@ def get_all_notification(db, page: int, page_size: int, trans_type, client_id):
         return success_response.success_message(data_result)
         
     except Exception as e:
-        return exceptions.server_error(str(e))        
+        return exceptions.server_error(str(e))
+    
+def update_trans_config(db, client_id, trans_channel, trans_type, transport_state):
+    try:
+        # get the transport channel id.
+        check_channel = models.TransportChannel.get_channel_by_slug(db, trans_channel.lower().strip())
+        if check_channel is None:
+            return exceptions.bad_request_error("Transport Channel with such slug doesn't Exist")
+        
+        trans_channel_id = check_channel.id
+        # check if the transport method, client_id and trans_channel_id
+        check_trans_config = models.TransportConfiguration.transport_config_object(
+            db).filter_by(client_id=client_id, trans_channel_id=trans_channel_id, 
+                          trans_method=trans_type.trans_type).first()
+        
+        if check_trans_config is None:
+            return exceptions.bad_request_error("Transport Configuration type doesn't exist")
+        # get the id
+        trans_config_id = check_trans_config.id 
+        # update the
+        update_trans_config_field = models.TransportConfiguration.update_transport_config(db, trans_config_id, transport_state)
+        if not update_trans_config_field:
+            return exceptions.bad_request_error("An error ocurred while updating Transport Configuration, Please try again")
+        # update the data.
+        db.add(update_trans_config_field)
+        db.commit()
+        db.refresh(update_trans_config_field)
+        
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message(update_trans_config_field, "Transport Configuration record was successfully updated")
 
         
 
