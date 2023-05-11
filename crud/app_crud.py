@@ -309,6 +309,59 @@ def update_trans_config(db, client_id, trans_channel, trans_type, transport_stat
     
     return success_response.success_message(update_trans_config_field, "Transport Configuration record was successfully updated")
 
+def activate_trans_config(db, client_id, trans_channel, trans_type):
+    try:
+        # get the transport channel id.
+        check_channel = models.TransportChannel.get_channel_by_slug(db, trans_channel.lower().strip())
+        if check_channel is None:
+            return exceptions.bad_request_error("Transport Channel with such slug doesn't Exist")
+        
+        trans_channel_id = check_channel.id
+        # check if the transport method, client_id and trans_channel_id
+        check_trans_config = models.TransportConfiguration.transport_config_object(
+            db).filter_by(client_id=client_id, trans_channel_id=trans_channel_id, 
+                          trans_method=trans_type.trans_type).first()
+        
+        if check_trans_config is None:
+            return exceptions.bad_request_error("Transport Configuration type doesn't exist")
+        # check if it's active.
+        if not check_trans_config.transport_state:
+            return exceptions.bad_request_error("Transport Configuration is not enabled or active")
+            
+        # get the id
+        trans_config_id = check_trans_config.id
+        
+        # check if the user exist with same transport type.
+        check_active_config = models.ActiveChannelClientConfig.get_active_channel_by_client_tran_id(
+            db, client_id, trans_channel_id).first()
+        
+        active_data = {'client_id':client_id, 
+                       'trans_channel_id':trans_channel_id, 
+                       'trans_config_id': trans_config_id
+                       } 
+        
+        if check_active_config is None:
+            # create the transport.
+            active_config = models.ActiveChannelClientConfig.create_active_channel(
+                db, active_data)
+        else:
+            # update the transport.
+            active_config = models.ActiveChannelClientConfig.update_active_channel(
+                db, check_active_config.id, active_data)
+            
+        if not active_config:
+            return exceptions.bad_request_error("An error ocurred while updating Transport Configuration, Please try again")
+        # update the data.
+        db.add(active_config)
+        db.commit()
+        db.refresh(active_config)
+        
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message(active_config, "Transport Configuration was successfully activated!")
+
+    
         
 
             

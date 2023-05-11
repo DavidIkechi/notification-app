@@ -29,13 +29,20 @@ async def enable_transport(request: Request, trans_channel: str, noti_type: Noti
     trans_state = {
         'transport_state': True
     }
+    
     return app_crud.update_trans_config(db, client_id, trans_channel, noti_type, trans_state)
 
-@trans_config_router.patch('/disable/{trans_channel}', summary="Enable a Transport Configuration", status_code=200, dependencies=[Depends(validate_client_key)])
+@trans_config_router.patch('/disable/{trans_channel}', summary="Disable a Transport Configuration", status_code=200, dependencies=[Depends(validate_client_key)])
 async def enable_transport(request: Request, trans_channel: str, noti_type: NotificationType, db: Session = Depends(get_db)):
     client_id = request.state.data
     trans_state = {
         'transport_state': False
     }
+    
     return app_crud.update_trans_config(db, client_id, trans_channel, noti_type, trans_state)
 
+@trans_config_router.put('/activate/{trans_channel}', summary="Activate a Transport Configuration", status_code=200, dependencies=[Depends(validate_client_key)])
+async def enable_transport(request: Request, trans_channel: str, noti_type: NotificationType, db: Session = Depends(get_db)):
+    client_id = request.state.data
+    
+    return app_crud.activate_trans_config(db, client_id, trans_channel, noti_type)
