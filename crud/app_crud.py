@@ -79,10 +79,8 @@ def get_all_clients(db, page: int, page_size: int):
         # get the client object for the desired columns.
         client_object = models.Client.get_client_object(db)
         # calculate page offset.
-        # page_offset = get_offset(page, page_size)
         page_offset = Params(page=page, size=page_size)
 
-        # data_result = client_object.offset(page_offset).limit(page_size).all()
         data_result = paginate(client_object, page_offset)
       
         return success_response.success_message(data_result)
@@ -250,7 +248,6 @@ def get_single_notification(db, client_id, noti_id):
 def get_all_notification(db, page: int, page_size: int, trans_type, client_id):
     try:
         # get the desired column.
-
         # get the notification object for the desired columns.
         noti_sample = models.NotificationSample.noti_sample_object(db).options(
             joinedload(models.NotificationSample.noti_type).load_only('slug').options(load_only('slug')),
@@ -267,12 +264,9 @@ def get_all_notification(db, page: int, page_size: int, trans_type, client_id):
             noti_result = noti_sample.filter_by(client_id=client_id, trans_channel_id=trans_channel.id)
             
         # calculate page offset.
-        # page_offset = get_offset(page, page_size)
         page_offset = Params(page=page, size=page_size)
 
-        # data_result = client_object.offset(page_offset).limit(page_size).all()
         data_result = paginate(noti_result, page_offset)
-        # data_result = extract_slugs(data_result)
         return success_response.success_message(data_result)
         
     except Exception as e:
@@ -360,14 +354,3 @@ def activate_trans_config(db, client_id, trans_channel, trans_type):
         return exceptions.server_error(str(e))
     
     return success_response.success_message(active_config, "Transport Configuration was successfully activated!")
-
-    
-        
-
-            
-        
-        
-        
-    
-
-
