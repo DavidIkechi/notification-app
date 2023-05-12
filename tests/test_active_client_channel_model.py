@@ -1,9 +1,7 @@
 from .conftest import get_session
 from .seeder import (
-    seed_transport_channel,
-    seed_channel_transport,
-    seed_notification_type,
-    seed_client,
+    seed_transport_channel, seed_channel_transport,
+    seed_notification_type, seed_client,
     seed_transport_configuration
 )
 import sys
@@ -69,11 +67,5 @@ def test_get_active_client_by_client_trans_channel_id(get_session):
     assert get_client_config.trans_channel.slug == "email"
     # check if it's the actual method
     assert get_client_config.trans_config.trans_method == "smtp-email"
-    assert get_client_config.trans_config.trans_config == {"mail_server": "smtp.google.com", "mail_username": "intuitive", "mail_password": "intuitive", "smtp_port": 567,
+    assert get_client_config.trans_config.trans_config == {"mail_server": "smtp.gmail.com", "mail_username": "Intuitive", "mail_password": "heeiovmgrudlmtvi", "smtp_port": 567,
                                                            "mail_tls": True, "mail_ssl": False}
-    
-
-
-    
-    
-    

@@ -53,4 +53,7 @@ env
 *versions
 *.htmlcov
 .coverage
+*docker
+*Docker
+*.vscode
 

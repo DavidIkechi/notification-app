@@ -1,10 +1,13 @@
 # for models.
 from .session import Base
-from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, ForeignKey, Float, JSON, TEXT
+from sqlalchemy import Column, Enum, Integer, String, Boolean, TIMESTAMP, ForeignKey, Float, JSON, TEXT
 from sqlalchemy.orm import Session, load_only, relationship
 import uuid
 from datetime import datetime
 from sqlalchemy.sql import text
+import sys
+sys.path.append("..")
+
 
 # Client Table.
 class Client(Base):
@@ -22,7 +25,7 @@ class Client(Base):
     noti_sample = relationship('NotificationSample', back_populates='client')
     trans_config = relationship('TransportConfiguration', back_populates='client')
     active_channel_config = relationship('ActiveChannelClientConfig', back_populates='client')
-
+    noti_history = relationship('NotificationHistory', back_populates='client')
     # get the client object
     @staticmethod
     def get_client_object(db: Session):
@@ -71,6 +74,7 @@ class TransportChannel(Base):
     channel_trans = relationship('ChannelTransportType', back_populates='trans_channel')
     trans_config = relationship('TransportConfiguration', back_populates='trans_channel')
     active_channel_config = relationship('ActiveChannelClientConfig', back_populates='trans_channel')
+    noti_history = relationship('NotificationHistory', back_populates='trans_channel')
 
     # start defining the static methods.
     @staticmethod
@@ -104,7 +108,8 @@ class NotificationType(Base):
                         onupdate=datetime.utcnow(), nullable=False)
     # relationships.
     noti_sample = relationship('NotificationSample', back_populates='noti_type')
-    
+    noti_history = relationship('NotificationHistory', back_populates='noti_type')
+
     # start defining the static methods.
     @staticmethod
     def get_notification_object(db: Session):
@@ -189,6 +194,12 @@ class NotificationSample(Base):
     def check_noti_sample_by_noti_type(db: Session, client_id, noti_type_id):
         return NotificationSample.noti_sample_object(db).filter_by(
             client_id = client_id, noti_type_id = noti_type_id
+        )
+    
+    @staticmethod
+    def check_noti_sample_by_noti_type_tran(db: Session, client_id, noti_type_id, channel_id):
+        return NotificationSample.noti_sample_object(db).filter_by(
+            client_id = client_id, noti_type_id = noti_type_id, trans_channel_id = channel_id
         ).first()
         
     @staticmethod
@@ -354,6 +365,63 @@ class ActiveChannelClientConfig(Base):
     def create_active_channel(db: Session, active_client_data: dict):
         return ActiveChannelClientConfig(**active_client_data)
         
+
+class NotificationHistory(Base):
+    __tablename__="notification_history"
+    id = Column(Integer, primary_key=True, index=True)
+    client_id = Column(Integer, ForeignKey('client.id', ondelete='CASCADE'))
+    trans_channel_id = Column(Integer, ForeignKey('transport_channel.id', ondelete='CASCADE'))
+    noti_type_id = Column(Integer, ForeignKey('notification_type.id', ondelete='CASCADE'))
+    message_body = Column(TEXT, nullable=False)
+    subject = Column(String(100), nullable=True) # plus spaces.
+    sender_id = Column(String(255), nullable=False)
+    sender_email = Column(String(255), nullable=True)
+    carbon_copy = Column(JSON, nullable=True, default=[])
+    blind_copy = Column(JSON, nullable=True, default=[])
+    recipients= Column(JSON, nullable=False)
+
+    # when it was sent.
+    message_id = Column(String(255), nullable=True, unique=True)
+    sent_at = Column(TIMESTAMP(timezone=True),nullable=True)
+    status = Column(String(100), nullable=False, default = "QUEUED")
+    message_status = Column(String(255), nullable=True)
+    scheduled_at = Column(TIMESTAMP(timezone=True),
+                          default = datetime.utcnow(), nullable=False)
+    # creating the relationship for the foreign keys.
+    client = relationship('Client', back_populates='noti_history')
+    trans_channel = relationship('TransportChannel', back_populates='noti_history')
+    noti_type = relationship('NotificationType', back_populates='noti_history')
+    # created and updated at.
+    created_at = Column(TIMESTAMP(timezone=True),
+                        default = datetime.utcnow(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        default=datetime.utcnow(), 
+                        onupdate=datetime.utcnow(), nullable=False)
+    
+    # start creating the static methods
+    @staticmethod
+    def notification_history_object(db: Session):
+        return db.query(NotificationHistory)
+    
+    @staticmethod
+    def create_notification_history(db: Session, noti_history_data: dict):
+        return NotificationHistory(**noti_history_data)
+    
+    @staticmethod
+    def get_noti_history_by_id(db: Session, history_id):
+        return NotificationHistory.notification_history_object(db).get(history_id)
+    
+    @staticmethod
+    def update_notification_history(db: Session, history_id, noti_update_data: dict):
+        noti_history = NotificationHistory.get_noti_history_by_id(db, history_id)
+        for key, value in noti_update_data.items():
+            setattr(noti_history, key, value)
+        return noti_history
+    
+    @staticmethod
+    def retrieve_noti_histories(db: Session):
+        return NotificationHistory.notification_history_object(db) 
+    
     
     
     
