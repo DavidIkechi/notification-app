@@ -55,4 +55,5 @@ env
 .coverage
 *docker
 *Docker
+*.vscode
 
