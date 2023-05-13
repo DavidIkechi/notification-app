@@ -8,7 +8,8 @@ from schema import (
     NotificationUpdateSchema,
     NotificationHistorySchema,
     NotificationDataEndpointSchema,
-    NotificationType
+    NotificationType,
+    TransportConfigurationSchema
 )
 
 from crud import app_crud
@@ -46,3 +47,13 @@ async def enable_transport(request: Request, trans_channel: str, noti_type: Noti
     client_id = request.state.data
     
     return app_crud.activate_trans_config(db, client_id, trans_channel, noti_type)
+
+@trans_config_router.post('/create', summary="Create Transport Configuration", status_code=201, dependencies=[Depends(validate_client_key)])
+async def create_configuration(request: Request, trans_schema: TransportConfigurationSchema, db: Session = Depends(get_db)):
+    client_id = request.state.data
+    return app_crud.create_config(db, client_id, trans_schema)
+
+@trans_config_router.patch('/update', summary="Update Transport Configuration", status_code=200, dependencies=[Depends(validate_client_key)])
+async def create_configuration(request: Request, trans_schema: TransportConfigurationSchema, db: Session = Depends(get_db)):
+    client_id = request.state.data
+    return app_crud.update_config(db, client_id, trans_schema)

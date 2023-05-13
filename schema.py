@@ -90,3 +90,10 @@ class EmailSchema(BaseModel):
     
 class NotificationType(BaseModel):
     trans_type: str = None
+    
+class TransportConfigurationSchema(BaseModel):
+    # trans channel can be sms or email
+    trans_channel: str
+    # trans_type can be smtp-email, nexmo
+    trans_type: str
+    trans_config: Dict[str, Union[bool, int, str]]
