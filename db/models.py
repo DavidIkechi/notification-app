@@ -364,6 +364,13 @@ class ActiveChannelClientConfig(Base):
     @staticmethod
     def create_active_channel(db: Session, active_client_data: dict):
         return ActiveChannelClientConfig(**active_client_data)
+    
+    @staticmethod
+    def update_active_channel(db: Session, active_id, active_update_data: dict):
+        active_conf = ActiveChannelClientConfig.get_active_channel_by_id(db, active_id)
+        for key, value in active_update_data.items():
+            setattr(active_conf, key, value)
+        return active_conf
         
 
 class NotificationHistory(Base):

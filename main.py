@@ -8,6 +8,7 @@ from db.session import get_db
 from jobs.job_config import notification_schedule
 from apis.client import client_router
 from apis.notification import notification_router
+from apis.transport_type import trans_config_router
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn, asyncio
 import os, uuid, multiprocessing
@@ -85,6 +86,11 @@ notification_app.include_router(
 # include notification router.
 notification_app.include_router(
     notification_router
+)
+
+# include the transport config router.
+notification_app.include_router(
+    trans_config_router
 )
 
 @notification_app.on_event("startup")
