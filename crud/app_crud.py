@@ -450,3 +450,45 @@ def update_config(db, client_id, trans_schema):
         return exceptions.server_error(str(e))
     
     return success_response.success_message(update_trans_config, "Transport Configuration was successfully updated")
+
+def get_all_methods(db, page, page_size, trans_type, client_id):
+    try:
+        # get the desired column.
+        # get the Channel Type object for the desired columns.
+        channel_type = models.ChannelTransportType.get_channel_transport_object(db).options(
+            joinedload(models.ChannelTransportType.trans_channel).load_only('slug').options(load_only('slug')),
+            load_only('slug'),
+            load_only('id'),)
+        
+        if trans_type is not None:
+            trans_channel = models.TransportChannel.get_channel_by_slug(db, trans_type.lower().strip())
+            if trans_channel is None:
+                return exceptions.bad_request_error(f"Transport Channel with such slug: {trans_type} doesn't Exist")
+     
+            channel_type = channel_type.filter_by(channel_id=trans_channel.id)
+        # calculate page offset.
+        page_offset = Params(page=page, size=page_size)
+
+        data_result = paginate(channel_type, page_offset)
+        
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message(data_result)
+
+def get_method_parameter(db, client_id, trans_method):
+    try:
+        # check if the noti_type and channel id exists, to get the parameters.
+        check_parameter = models.ChannelTransportType.get_channel_trans_param_by_slug(
+            db, trans_method.lower())
+        if check_parameter is None:
+            return exceptions.bad_request_error(f"Transport Method: {trans_method} doesn't Exist")
+        
+        data_result = {
+            "parameter": check_parameter.parameters
+        }
+        
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message(data_result)
