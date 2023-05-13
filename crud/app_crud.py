@@ -277,7 +277,7 @@ def update_trans_config(db, client_id, trans_channel, trans_type, transport_stat
         # get the transport channel id.
         check_channel = models.TransportChannel.get_channel_by_slug(db, trans_channel.lower().strip())
         if check_channel is None:
-            return exceptions.bad_request_error("Transport Channel with such SMTP doesn't Exist")
+            return exceptions.bad_request_error(f"Transport Channel: {trans_channel} doesn't Exist")
         
         trans_channel_id = check_channel.id
         # check if the transport method, client_id and trans_channel_id
@@ -308,7 +308,7 @@ def activate_trans_config(db, client_id, trans_channel, trans_type):
         # get the transport channel id.
         check_channel = models.TransportChannel.get_channel_by_slug(db, trans_channel.lower().strip())
         if check_channel is None:
-            return exceptions.bad_request_error("Transport Channel with such SMTP doesn't Exist")
+            return exceptions.bad_request_error(f"Transport Channel: {trans_channel} doesn't Exist")
         
         trans_channel_id = check_channel.id
         # check if the transport method, client_id and trans_channel_id
