@@ -23,6 +23,51 @@ from schema import (
     TransportConfigUpdateSchema
 )
 
+def test_create_transport_configuration(get_session, client_instance):
+    # seed all necessary data.
+    seed_client(get_session)
+    seed_transport_channel(get_session)
+    seed_notification_type(get_session)
+    seed_notification_sample(get_session)    
+    # add the header.
+    headers = {
+        "Client-Authorization": "new_key"
+    }
+    # delete all rows in the transport configuration table.
+    get_session.query(TransportConfiguration).delete()
+    get_session.commit()
+    
+    # check before putting new data. To ensure that it's actually empty.
+    get_transport = TransportConfiguration.retrieve_transport_configs(get_session)
+    assert len(get_transport.all()) == 0
+    # configurationn data
+    configuration_data = {
+        "trans_channel": "email",
+        "trans_type": "smtp-email",
+        "trans_config": {
+            "mail_ssl": True,
+            "mail_tls": False,
+            "smtp_port": 465,
+            "mail_server": "#########",
+            "mail_password": "##########",
+            "mail_username": "#########"
+        }
+    }
+    
+    # create the transport confguration.
+    trans_response = client_instance.post('/transport_configuration/create', 
+                                           headers=headers, json=configuration_data)
+    # force submit.
+    get_session.commit()
+    get_transport = TransportConfiguration.retrieve_transport_configs(get_session)
+    assert len(get_transport.all()) == 1
+    # check if the records were entered correctly.
+    single_transport = TransportConfiguration.get_transport_config_by_id(
+        get_session, 1)
+    assert single_transport.trans_config == configuration_data['trans_config']
+    assert single_transport.trans_method == configuration_data['trans_type']
+    assert single_transport.trans_channel.slug == configuration_data['trans_channel']
+
 def test_disable_transport_config(get_session, client_instance):
     # see all necessary data
     seed_client(get_session)
@@ -95,7 +140,7 @@ def test_enable_transport_config(get_session, client_instance):
     
       
 def test_active_transport_config(get_session, client_instance):
-    # see all necessary data
+    # seed all necessary data
     seed_client(get_session)
     seed_transport_channel(get_session)
     seed_notification_type(get_session)
@@ -125,5 +170,46 @@ def test_active_transport_config(get_session, client_instance):
     assert check_active_data.client_id == 1
     assert check_active_data.trans_channel.slug == "email"
     
- 
+
+def test_update_transport_configuration(get_session, client_instance):
+    # seed all necessary data
+    seed_client(get_session)
+    seed_transport_channel(get_session)
+    seed_notification_type(get_session)
+    seed_notification_sample(get_session)
+    seed_transport_configuration(get_session) 
+
+    # add the header.
+    headers = {
+        "Client-Authorization": "new_key"
+    }
+    # check the value before updating.
+    single_transport = TransportConfiguration.get_transport_config_by_id(
+        get_session, 1)
+    # configurationn data
+    assert single_transport.trans_config['smtp_port'] == 567
+    assert single_transport.trans_config['mail_server'] == "smtp.gmail.com"
     
+    configuration_data = {
+        "trans_channel": "email",
+        "trans_type": "smtp-email",
+        "trans_config": {
+            "mail_ssl": False,
+            "mail_tls": True,
+            "smtp_port": 587,
+            "mail_server": "smtp.zoho.com",
+            "mail_password": "#########",
+            "mail_username": "#########"
+        }
+    }
+    
+    update_config =  client_instance.patch('/transport_configuration/update', 
+                                           headers=headers, json=configuration_data)
+    # force submit.
+    get_session.commit()
+    # check the value after updating.
+    new_transport = TransportConfiguration.get_transport_config_by_id(
+        get_session, 1)
+    # configurationn data
+    assert new_transport.trans_config['smtp_port'] == 587
+    assert new_transport.trans_config['mail_server'] == "smtp.zoho.com"
