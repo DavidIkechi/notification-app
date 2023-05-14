@@ -147,7 +147,7 @@ def test_get_all_client_notification(get_session, client_instance):
     assert noti_response.status_code == 200
     assert len(noti_response.json()['data']['items'])== 2
     
-def test_get_all_client_notification(get_session, client_instance):
+def test_get_all_client_notification_per_channel(get_session, client_instance):
     # seed the table with data.
     seed_client(get_session)
     seed_transport_channel(get_session)

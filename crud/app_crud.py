@@ -354,3 +354,141 @@ def activate_trans_config(db, client_id, trans_channel, trans_type):
         return exceptions.server_error(str(e))
     
     return success_response.success_message(active_config, "Transport Configuration was successfully activated!")
+
+def validate_config(db, client_id, trans_schema):
+    
+    try:
+        # get the transport channel id first.
+        transport_channel = models.TransportChannel.get_channel_by_slug(db, trans_schema.trans_channel.lower())
+        if transport_channel is None:
+            return exceptions.bad_request_error(f"Transport channel with name {trans_schema.trans_channel} doesn't exist")
+        
+        # check if the transport type exists
+        transport_method = models.ChannelTransportType.get_channel_trans_param_by_slug(
+            db, trans_schema.trans_type.lower())
+        # check if it's not found.
+        if transport_method is None:
+            return exceptions.bad_request_error(f"Transport method with name {trans_schema.trans_type} doesn't exist")
+        
+        # check if the transport config key matches with the the right parameter.
+        if set(transport_method.parameters) != set(trans_schema.trans_config.keys()):
+            return exceptions.bad_request_error("You have supplied an invalid configuration parameter")
+                    
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return True
+
+def create_config(db, client_id, trans_schema):
+    try:
+        check_config_data = validate_config(db, client_id, trans_schema)
+        # if there is an error somewhere, just shoot out the error.
+        if check_config_data != True:
+            return check_config_data
+        # submit the data.
+        # check if the transport configuration already exists.
+        transport_channel = models.TransportChannel.get_channel_by_slug(db, trans_schema.trans_channel.lower())
+        check_trans_config = models.TransportConfiguration.transport_config_object(
+            db).filter_by(client_id=client_id, trans_channel_id=transport_channel.id, 
+                          trans_method=trans_schema.trans_type.lower()).first()
+        
+        if check_trans_config is not None:
+            return exceptions.bad_request_error("Transport Configuration already exists")
+        # add it.
+        # convert to dictionary.
+        config_data = trans_schema.dict(exclude_unset=True, exclude_none=True)
+        # remove some column that are not needed.
+        config_data.pop('trans_channel')
+        config_data.pop('trans_type')
+        # add the columns that are needed.
+        config_data['client_id'] = client_id
+        config_data['trans_channel_id'] = transport_channel.id
+        config_data['trans_method'] = trans_schema.trans_type.lower()
+                
+        add_trans_config = models.TransportConfiguration.create_transport_config(
+            db, config_data)
+        # add the data.
+        db.add(add_trans_config)
+        db.commit()
+        db.refresh(add_trans_config)
+        
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message(add_trans_config, "Transport Configuration was successfully created", 201)
+
+def update_config(db, client_id, trans_schema):
+    try:
+        check_config_data = validate_config(db, client_id, trans_schema)
+        # if there is an error somewhere, just shoot out the error.
+        if check_config_data != True:
+            return check_config_data
+        
+        transport_channel = models.TransportChannel.get_channel_by_slug(db, trans_schema.trans_channel.lower())
+        check_trans_config = models.TransportConfiguration.transport_config_object(
+            db).filter_by(client_id=client_id, trans_channel_id=transport_channel.id, 
+                          trans_method=trans_schema.trans_type.lower()).first()
+
+        if check_trans_config is None:
+            return exceptions.bad_request_error("Transport Configuration does not exists")
+        
+        # convert to dictionary.
+        update_config_data = trans_schema.dict(exclude_unset=True, exclude_none=True)
+        # remove some column that are not needed.
+        update_config_data.pop('trans_channel')
+        update_config_data.pop('trans_type')
+        
+        update_trans_config = models.TransportConfiguration.update_transport_config(
+            db, check_trans_config.id, update_config_data)
+        # add the data.
+        db.add(update_trans_config)
+        db.commit()
+        db.refresh(update_trans_config)
+        
+        
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message(update_trans_config, "Transport Configuration was successfully updated")
+
+def get_all_methods(db, page, page_size, trans_type, client_id):
+    try:
+        # get the desired column.
+        # get the Channel Type object for the desired columns.
+        channel_type = models.ChannelTransportType.get_channel_transport_object(db).options(
+            joinedload(models.ChannelTransportType.trans_channel).load_only('slug').options(load_only('slug')),
+            load_only('slug'),
+            load_only('id'),)
+        
+        if trans_type is not None:
+            trans_channel = models.TransportChannel.get_channel_by_slug(db, trans_type.lower().strip())
+            if trans_channel is None:
+                return exceptions.bad_request_error(f"Transport Channel with such slug: {trans_type} doesn't Exist")
+     
+            channel_type = channel_type.filter_by(channel_id=trans_channel.id)
+        # calculate page offset.
+        page_offset = Params(page=page, size=page_size)
+
+        data_result = paginate(channel_type, page_offset)
+        
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message(data_result)
+
+def get_method_parameter(db, client_id, trans_method):
+    try:
+        # check if the noti_type and channel id exists, to get the parameters.
+        check_parameter = models.ChannelTransportType.get_channel_trans_param_by_slug(
+            db, trans_method.lower())
+        if check_parameter is None:
+            return exceptions.bad_request_error(f"Transport Method: {trans_method} doesn't Exist")
+        
+        data_result = {
+            "parameter": check_parameter.parameters
+        }
+        
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message(data_result)
