@@ -125,4 +125,26 @@ def seed_noti_history(db: Session):
     if NotificationHistory.notification_history_object(db).count() == 0:
         active_instance = [NotificationHistory(**noti) for  noti in noti_hist_data]
         db.add_all(active_instance)
-        db.commit() 
+        db.commit()
+        
+def seed_notification_variable(db: Session):
+    from db.models import NotificationVariables
+    
+    noti_variable_data = [
+        {'id': 1, 'noti_type': 'login', 'noti_variable': 
+            ['username', 'first_name', 'email_address', 'phone_number', 'ip_address', 'date', 'time', 'company_name']},
+        {'id': 2, 'noti_type':'welcome', 'noti_variable':
+            ['username', 'email_address', 'first_name', 'last_name', 'phone_number',
+             'date', 'time', 'company_name']},
+        {'id': 3, 'noti_type':'forget-password', 'noti_variable':
+            ['username', 'email_address', 'first_name', 'reset_url', 'phone_number', 'company_name']},
+        {'id': 4, 'noti_type': 'reset-password', 'noti_variable':
+            ['first_name', 'username', 'login_url', 'new_password', 'email_address', 'phone_number', 'company_name']},
+        {'id': 5, 'noti_type': 'registeration', 'noti_variable':
+            ['first_name', 'email_address', 'login_url', 'password', 'phone_number', 'company_name']}
+    ]
+    
+    if NotificationVariables.notification_variable_object(db).count() == 0:
+        active_instance = [NotificationVariables(**noti) for  noti in noti_variable_data]
+        db.add_all(active_instance)
+        db.commit()

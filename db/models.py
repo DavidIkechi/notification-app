@@ -75,7 +75,6 @@ class TransportChannel(Base):
     trans_config = relationship('TransportConfiguration', back_populates='trans_channel')
     active_channel_config = relationship('ActiveChannelClientConfig', back_populates='trans_channel')
     noti_history = relationship('NotificationHistory', back_populates='trans_channel')
-
     # start defining the static methods.
     @staticmethod
     def get_transport_channel_object(db: Session):
@@ -427,31 +426,27 @@ class NotificationHistory(Base):
     
     @staticmethod
     def retrieve_noti_histories(db: Session):
-        return NotificationHistory.notification_history_object(db) 
+        return NotificationHistory.notification_history_object(db)
     
-    
-    
-    
+class NotificationVariables(Base):
+    __tablename__ = "notification_variables"
+    id = Column(Integer, primary_key=True, index=True)
+    noti_type = Column(Integer, ForeignKey('notification_type.slug', ondelete='CASCADE'))
+    noti_variable = Column(JSON, nullable=False)
         
-
+    # created and updated at.
+    created_at = Column(TIMESTAMP(timezone=True),
+                        default = datetime.utcnow(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        default=datetime.utcnow(), 
+                        onupdate=datetime.utcnow(), nullable=False)
     
+    # static methods
+    @staticmethod
+    def notification_variable_object(db: Session):
+        return db.query(NotificationVariables)
     
-    
-    
-    
-    
-    
-      
-    
-        
-    
-    
-    
-            
-            
-        
-    
-    
-    
-    
-    
+    @staticmethod
+    def get_notification_variable_by_slug(db: Session, noti_type: str):
+        return NotificationVariables.notification_variable_object(
+            db).filter_by(noti_type = noti_type).first()
