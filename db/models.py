@@ -385,6 +385,10 @@ class NotificationHistory(Base):
     carbon_copy = Column(JSON, nullable=True, default=[])
     blind_copy = Column(JSON, nullable=True, default=[])
     recipients= Column(JSON, nullable=False)
+    # Newly added columns for resend situations.
+    resend = Column(Integer, default = 0)
+    resend_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    delivered = Column(Integer, default = 0)
 
     # when it was sent.
     message_id = Column(String(255), nullable=True, unique=True)
