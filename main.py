@@ -11,6 +11,7 @@ from apis.notification import notification_router
 from apis.transport_type import trans_config_router
 from apis.noti_variables import noti_variable_router
 from apis.trans_method import trans_type_router
+from apis.noti_history import noti_history_router
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn, asyncio
 import os, uuid, multiprocessing
@@ -106,6 +107,11 @@ notification_app.include_router(
     noti_variable_router
 )
 
+# include the notification history router.
+notification_app.include_router(
+    noti_history_router
+)
+
 @notification_app.on_event("startup")
 async def startup_event():
     db = Session()
@@ -124,3 +130,6 @@ async def ping():
 if __name__ == "__main__":
     # Run the FastAPI app
     asyncio.run(main())
+    
+    
+

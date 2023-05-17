@@ -19,6 +19,8 @@ from schema import (
 from db.models import NotificationSample
 from sqlalchemy.orm import load_only, joinedload, selectinload
 from sqlalchemy import and_
+from datetime import datetime
+
 
 db = Session()
 
@@ -520,3 +522,47 @@ def get_single_noti_variable(db, noti_slug):
         return exceptions.server_error(str(e))
     
     return success_response.success_message(noti_variable.noti_variable)
+
+def get_single_history(db, client_id, hist_id):
+    try:
+        # get the id belonging to the client
+        get_noti_hist = models.NotificationHistory.notification_history_object(
+            db).filter_by(client_id=client_id, id=hist_id).first()
+        
+        if get_noti_hist is None:
+            return exceptions.bad_request_error(f"Notification with such id {hist_id} doesn't exist")
+        
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message(get_noti_hist)
+
+def resend_notification(db, client_id, hist_id):
+    try:
+        # get the id belonging to the client
+        get_noti_hist = models.NotificationHistory.notification_history_object(
+            db).filter_by(client_id=client_id, id=hist_id).first()
+        
+        if get_noti_hist is None:
+            return exceptions.bad_request_error(f"Notification with such id {hist_id} doesn't exist")
+        resent_data = {
+            "resend": int(get_noti_hist.resend) + 1,
+            "status": "QUEUED",
+            "message_id": None,
+            "scheduled_at": datetime.utcnow()
+        }
+        
+        # now update.
+        update_history = models.NotificationHistory.update_notification_history(
+            db, hist_id, resent_data)
+        # add the data.
+        db.add(update_history)
+        db.commit()
+        db.refresh(update_history)
+        
+        
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message([], "Notification has been triggered to be resent.")
+    
