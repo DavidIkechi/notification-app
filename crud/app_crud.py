@@ -199,8 +199,18 @@ def send_notification(db, client_id: int, trans_channel_slug: str, sche_variable
         # check if it is active or not as well
         if not check_config.trans_config.transport_state:
             return exceptions.bad_request_error("Transport Gateway is disabled!")
+        
+        # get the variables for the noti type.
+        # get the notification variable.
+        variable = []
+        noti_variable = models.NotificationVariables.get_notification_variable_by_slug(
+            db, sche_variables.noti_type_slug)
+        if noti_variable is None:
+            variable = []
+        else:
+            variable = noti_variable.noti_variable
         # prepare the data;
-        prepared_noti_data = get_noti_data(check_noti, sche_variables)
+        prepared_noti_data = get_noti_data(check_noti, sche_variables, variable)
         # save the data.
         store_noti_data = models.NotificationHistory.create_notification_history(db, prepared_noti_data)
         db.add(store_noti_data)
@@ -492,3 +502,21 @@ def get_method_parameter(db, client_id, trans_method):
         return exceptions.server_error(str(e))
     
     return success_response.success_message(data_result)
+
+def get_single_noti_variable(db, noti_slug):
+    try:
+        # check if the slug exists.
+        noti_type = models.NotificationType.get_notification_by_slug(db, noti_slug)
+        if noti_type is None:
+            return exceptions.bad_request_error(f"Notification Type: {noti_slug} doesn't Exist")
+        # get the notification variable.
+        noti_variable = models.NotificationVariables.get_notification_variable_by_slug(
+            db, noti_slug)
+        
+        if noti_variable is None:
+            return exceptions.bad_request_error(f"Notification Variable for : {noti_slug} doesn't Exist")
+        
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message(noti_variable.noti_variable)

@@ -61,6 +61,7 @@ def test_send_noti_with_enabled_state(get_session, client_instance):
     seed_transport_channel(get_session)
     seed_notification_type(get_session)
     seed_notification_sample(get_session)
+    seed_transport_configuration(get_session),
     seed_active_channel_client_config(get_session)
     
     # update to enabled!
@@ -75,7 +76,7 @@ def test_send_noti_with_enabled_state(get_session, client_instance):
     # notification data.
     update_data = {
         "noti_variables": {
-            "firstname": "Mercy"
+            "first_name": "Mercy"
         },
         "recipients": [
             "davidakwuruu@gmail.com"
@@ -84,7 +85,7 @@ def test_send_noti_with_enabled_state(get_session, client_instance):
     }
     
     noti_response = client_instance.post("/notification/send/email", json=update_data, headers=headers)
-    # assert noti_response.status_code == 200
+    assert noti_response.status_code == 200
     assert noti_response.json()['detail'] == "Notification has been triggered to be sent"
 
 def test_send_noti_with_disabled_state(get_session, client_instance):
@@ -102,7 +103,7 @@ def test_send_noti_with_disabled_state(get_session, client_instance):
     # notification data.
     update_data = {
         "noti_variables": {
-            "firstname": "Mercy"
+            "first_name": "Mercy"
         },
         "recipients": [
             "davidakwuruu@gmail.com"
@@ -136,7 +137,7 @@ def test_send_noti_without_active_config(get_session, client_instance):
     # notification data.
     update_data = {
         "noti_variables": {
-            "firstname": "Mercy"
+            "first_name": "Mercy"
         },
         "recipients": [
             "davidakwuruu@gmail.com"

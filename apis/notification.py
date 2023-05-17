@@ -66,5 +66,3 @@ async def get_all_client(request: Request, trans_type: str = Query(default=None)
                          db: Session=Depends(get_db)):
     client_id = request.state.data
     return app_crud.get_all_notification(db, page, page_size, trans_type, client_id)
-
-

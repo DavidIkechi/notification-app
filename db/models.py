@@ -431,7 +431,7 @@ class NotificationHistory(Base):
 class NotificationVariables(Base):
     __tablename__ = "notification_variables"
     id = Column(Integer, primary_key=True, index=True)
-    noti_type = Column(Integer, ForeignKey('notification_type.slug', ondelete='CASCADE'), unique=True)
+    noti_type = Column(String(100), ForeignKey('notification_type.slug', ondelete='CASCADE'), unique=True)
     noti_variable = Column(JSON, nullable=False)
         
     # created and updated at.
