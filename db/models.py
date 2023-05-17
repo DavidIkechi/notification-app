@@ -431,7 +431,7 @@ class NotificationHistory(Base):
 class NotificationVariables(Base):
     __tablename__ = "notification_variables"
     id = Column(Integer, primary_key=True, index=True)
-    noti_type = Column(Integer, ForeignKey('notification_type.slug', ondelete='CASCADE'))
+    noti_type = Column(Integer, ForeignKey('notification_type.slug', ondelete='CASCADE'), unique=True)
     noti_variable = Column(JSON, nullable=False)
         
     # created and updated at.
@@ -450,3 +450,7 @@ class NotificationVariables(Base):
     def get_notification_variable_by_slug(db: Session, noti_type: str):
         return NotificationVariables.notification_variable_object(
             db).filter_by(noti_type = noti_type).first()
+        
+    @staticmethod
+    def retrieve_notification_variables(db: Session):
+        return NotificationVariables.notification_variable_object(db).all()
