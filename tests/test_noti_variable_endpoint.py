@@ -30,5 +30,5 @@ def test_get_single_noti_variable(get_session, client_instance):
     noti_variable = client_instance.get('/notification_variables/single/welcome', headers=headers)
     assert noti_variable.status_code == 200
     assert noti_variable.json()['detail'] == "Success"
-    assert noti_variable.json()['data'] == ['username', 'email_address', 'first_name', 'last_name', 'phone_number',
-             'date', 'time', 'company_name']
+    assert sorted(list(noti_variable.json()['data'].keys())) == sorted(['username', 'email_address', 'first_name', 'phone_number',
+             'date', 'time', 'company_name'])

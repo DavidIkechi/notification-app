@@ -21,7 +21,8 @@ from tests.seeder import (
     seed_channel_transport,
     seed_transport_configuration,
     seed_active_channel_client_config,
-    seed_notification_variable
+    seed_notification_variable,
+    seed_parent_variables
 )
 
 # Microservice description
@@ -119,6 +120,7 @@ async def startup_event():
     seed_notification_type(db)
     seed_channel_transport(db)
     seed_notification_variable(db)
+    seed_parent_variables(db)
     db.close()
     
     

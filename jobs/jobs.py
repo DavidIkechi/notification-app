@@ -89,7 +89,6 @@ def update_notification():
                     get_message = result.result
                     message = get_message.get('result')
                     sent_at = get_message.get('completion_time')
-                    update_data['delivered'] = int(noti.delivered) + 1
 
                 else:
                     error_data = result.info
@@ -100,6 +99,8 @@ def update_notification():
                 update_data['message_status'] = message
                 # checking if it is been resent or not.
                 if int(noti.resend) != 0:
+                    if result.successful():
+                        update_data['delivered'] = int(noti.delivered) + 1
                     update_data['resend_at'] = sent_at
                 else: 
                     update_data['sent_at'] = sent_at
