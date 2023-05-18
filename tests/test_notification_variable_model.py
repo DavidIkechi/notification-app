@@ -29,5 +29,5 @@ def test_get_single_variables(get_session):
     # get the notification.
     get_variable = NotificationVariables.get_notification_variable_by_slug(get_session, 'login')
     assert get_variable is not None
-    assert get_variable.noti_variable == ['username', 'first_name', 'email_address', 'phone_number', 'ip_address', 'date', 'time', 'company_name']
+    assert get_variable.noti_variable == [1, 2, 5, 6, 10, 8, 9, 7]
     

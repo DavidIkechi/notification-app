@@ -131,20 +131,37 @@ def seed_notification_variable(db: Session):
     from db.models import NotificationVariables
     
     noti_variable_data = [
-        {'id': 1, 'noti_type': 'login', 'noti_variable': 
-            ['username', 'first_name', 'email_address', 'phone_number', 'ip_address', 'date', 'time', 'company_name']},
-        {'id': 2, 'noti_type':'welcome', 'noti_variable':
-            ['username', 'email_address', 'first_name', 'last_name', 'phone_number',
-             'date', 'time', 'company_name']},
-        {'id': 3, 'noti_type':'forget-password', 'noti_variable':
-            ['username', 'email_address', 'first_name', 'reset_url', 'phone_number', 'company_name']},
-        {'id': 4, 'noti_type': 'reset-password', 'noti_variable':
-            ['first_name', 'username', 'login_url', 'new_password', 'email_address', 'phone_number', 'company_name']},
-        {'id': 5, 'noti_type': 'registeration', 'noti_variable':
-            ['first_name', 'email_address', 'login_url', 'password', 'phone_number', 'company_name']}
+        {'id': 1, 'noti_type': 'login', 'noti_variable': [1, 2, 5, 6, 10, 8, 9, 7]},
+        {'id': 2, 'noti_type':'welcome', 'noti_variable': [1, 5, 2, 6, 8, 9, 7]},
+        {'id': 3, 'noti_type':'forget-password', 'noti_variable': [1, 5, 2, 11, 6, 7]},
+        {'id': 4, 'noti_type': 'reset-password', 'noti_variable': [2, 1, 4, 12, 5, 6, 7]},
+        {'id': 5, 'noti_type': 'registeration', 'noti_variable': [2, 5, 4, 3, 6, 7]}
     ]
     
     if NotificationVariables.notification_variable_object(db).count() == 0:
         active_instance = [NotificationVariables(**noti) for  noti in noti_variable_data]
+        db.add_all(active_instance)
+        db.commit()
+        
+def seed_parent_variables(db: Session):
+    from db.models import ParentVariables
+    
+    parent_variable = [
+        {'id': 1, 'variable_text': 'username', 'replace_text': '{{username}}'},
+        {'id': 2, 'variable_text': 'first_name', 'replace_text': '{{first_name}}'},
+        {'id': 3, 'variable_text': 'password', 'replace_text': '{{password}}'},
+        {'id': 4, 'variable_text': 'login_url', 'replace_text': '{{login_url}}'},
+        {'id': 5, 'variable_text': 'email_address', 'replace_text': '{{email_address}}'},
+        {'id': 6, 'variable_text': 'phone_number', 'replace_text': '{{phone_number}}'},
+        {'id': 7, 'variable_text': 'company_name', 'replace_text': '{{company_name}}'},
+        {'id': 8, 'variable_text': 'date', 'replace_text': '{{date}}'},
+        {'id': 9, 'variable_text': 'time', 'replace_text': '{{time}}'},
+        {'id': 10, 'variable_text': 'ip_address', 'replace_text': '{{ip_address}}'},
+        {'id': 11, 'variable_text': 'reset_url', 'replace_text': '{{reset_url}}'},
+        {'id': 12, 'variable_text': 'new_password', 'replace_text': '{{new_password}}'},
+    ]
+    
+    if ParentVariables.parent_variable_object(db).count() == 0:
+        active_instance = [ParentVariables(**parent) for  parent in parent_variable]
         db.add_all(active_instance)
         db.commit()

@@ -454,3 +454,20 @@ class NotificationVariables(Base):
     @staticmethod
     def retrieve_notification_variables(db: Session):
         return NotificationVariables.notification_variable_object(db).all()
+    
+class ParentVariables(Base):
+    __tablename__ = 'parent_variables'
+    id = Column(Integer, primary_key=True, index=True)
+    variable_text = Column(String(100), nullable=False, unique=True)
+    replace_text = Column(String(100), nullable=False, unique=True)
+    
+    # created and updated at.
+    created_at = Column(TIMESTAMP(timezone=True),
+                        default = datetime.utcnow(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        default=datetime.utcnow(), 
+                        onupdate=datetime.utcnow(), nullable=False)
+    
+    @staticmethod
+    def parent_variable_object(db: Session):
+        return db.query(ParentVariables)

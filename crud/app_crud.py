@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 sys.path.append("..")
 from utils import *
+from typing import List
 from db import models
 from db.session import Session
 from fastapi.encoders import jsonable_encoder
@@ -13,6 +14,7 @@ from fastapi_pagination import Page, Params
 from response_handler import error_response as exceptions
 from response_handler import success_response
 from fastapi_pagination.ext.sqlalchemy import paginate
+
 from schema import (
     NotificationDataSchema
 )
@@ -208,7 +210,9 @@ def send_notification(db, client_id: int, trans_channel_slug: str, sche_variable
         if noti_variable is None:
             variable = []
         else:
-            variable = noti_variable.noti_variable
+            variable_ids = noti_variable.noti_variable
+            variables = retrieve_variables_by_ids(db, variable_ids)
+            variable = list(variables.keys())
         # prepare the data;
         prepared_noti_data = get_noti_data(check_noti, sche_variables, variable)
         # save the data.
@@ -511,12 +515,29 @@ def get_single_noti_variable(db, noti_slug):
             return exceptions.bad_request_error(f"Notification Type: {noti_slug} doesn't Exist")
         # get the notification variable.
         noti_variable = models.NotificationVariables.get_notification_variable_by_slug(
-            db, noti_slug)
+            db, noti_slug) 
         
         if noti_variable is None:
             return exceptions.bad_request_error(f"Notification Variable for : {noti_slug} doesn't Exist")
         
+        # get the values as dictionary.
+        variable_ids = noti_variable.noti_variable
+        variables = retrieve_variables_by_ids(db, variable_ids)
+        
     except Exception as e:
         return exceptions.server_error(str(e))
     
-    return success_response.success_message(noti_variable.noti_variable)
+    return success_response.success_message(variables)
+
+def retrieve_variables_by_ids(db: Session, ids: List[int]):
+    variables = (
+         models.ParentVariables.parent_variable_object(db).filter(
+             models.ParentVariables.id.in_(ids)).all()
+         )
+
+    result = {
+        variable.variable_text: variable.replace_text
+        for variable in variables
+    }
+
+    return result
