@@ -148,3 +148,27 @@ def seed_notification_variable(db: Session):
         active_instance = [NotificationVariables(**noti) for  noti in noti_variable_data]
         db.add_all(active_instance)
         db.commit()
+        
+
+def seed_notification_history(db: Session):
+    from db.models import NotificationHistory
+    
+    hist_data = [
+        {'id': 1, 'client_id': 1, 'trans_channel_id': 1, 'noti_type_id': 1, 'message_body': 'bb',
+         'subject': 'bbb', 'sender_id': 'nnn', 'sender_email': 'bbbb',
+         'recipients':['bbb@gmail.com']},
+        {'id': 2, 'client_id': 1, 'trans_channel_id': 2, 'noti_type_id': 1, 'message_body': 'bb',
+         'subject': 'bbb', 'sender_id': 'nnn', 'sender_email': 'bbbb',
+         'recipients':['bbb@gmail.com']}
+    ]
+    
+    if NotificationHistory.notification_history_object(db).count() == 0:
+        active_instance = [NotificationHistory(**noti) for  noti in hist_data]
+        db.add_all(active_instance)
+        db.commit()
+    
+    
+    
+    
+    
+    

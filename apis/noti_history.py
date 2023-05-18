@@ -28,3 +28,9 @@ async def resend_notification(request: Request, noti_hist_id: int, db: Session =
     client_id = request.state.data
     
     return app_crud.resend_notification(db, client_id, noti_hist_id)
+
+@noti_history_router.get('/', summary="Get all Notification History", status_code=200, dependencies=[Depends(validate_client_key)])
+async def get_all_client(request: Request, trans_type: str = Query(default=None), page: int = Query(1, ge=1), page_size: int = 10,
+                         db: Session=Depends(get_db)):
+    client_id = request.state.data
+    return app_crud.get_all_histories(db, page, page_size, trans_type, client_id)

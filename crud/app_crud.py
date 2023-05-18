@@ -566,3 +566,26 @@ def resend_notification(db, client_id, hist_id):
     
     return success_response.success_message([], "Notification has been triggered to be resent.")
     
+def get_all_histories(db, page, page_size, trans_type, client_id):
+    try:
+        
+        if trans_type is None or trans_type.strip() == "":
+            noti_history = models.NotificationHistory.retrieve_noti_histories(
+                db).filter_by(client_id=client_id)
+        else:
+            # check the transport channel and get it's id if it exists.
+            get_trans_type = models.TransportChannel.get_channel_by_slug(db, trans_type.strip())
+            if get_trans_type is None:
+                return exceptions.bad_request_error(f"Transport channel {trans_type} doesn't exist")
+            
+            noti_history = models.NotificationHistory.retrieve_noti_histories(
+                            db).filter_by(client_id=client_id, trans_channel_id=get_trans_type.id)
+            
+        page_offset = Params(page=page, size=page_size)
+
+        data_result = paginate(noti_history, page_offset)
+            
+    except Exception as e:
+        return exceptions.server_error(str(e))
+    
+    return success_response.success_message(data_result)
