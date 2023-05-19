@@ -8,6 +8,9 @@ from fastapi import status
 # from fastapi.testclient import TestClient
 # from apis.client import client_router
 # from main import notification_app
+from .seeder import (
+    seed_client
+)
 import logging
 
 
@@ -396,7 +399,17 @@ def test_get_all_clients_with_error(client_instance, get_session):
     assert client_response.status_code == 422
 
     
-    
+def test_get_all_clients_without_size(client_instance, get_session):
+    seed_client(get_session)
+    # first check the length without pagination.
+    get_clients = models.Client.retrieve_all_client(get_session)
+    assert len(get_clients) == 12
+    # call the paginated endpoint, default size is 10.
+    # default page is 1.
+    client_response = client_instance.get("/client/")
+    assert len(client_response.json()['data']['items'])== 10
+    assert client_response.status_code == 200
+    assert client_response.json()['data']['page'] == 1
     
     
     
