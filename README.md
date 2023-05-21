@@ -1,4 +1,5 @@
-# <p align='center'>Notification Application</p>
+# Notification Application
+
 A Micro Application that allows Client to send notification (messages) including email and sms to patients (in this context).
 
 ## Tech Stack
