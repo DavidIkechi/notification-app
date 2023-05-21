@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 noti_variable_router = APIRouter(
-    prefix="/notification_variables",
+    prefix="/variables",
     tags=["Notification Variables"],
 )
 

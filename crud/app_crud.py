@@ -24,6 +24,78 @@ from sqlalchemy import and_
 
 db = Session()
 
+# reusable functions.
+def check_trans_slug(db, trans_slug, noti_slug):
+    # check if the noti matches the client.
+    noti_type = models.NotificationType.get_notification_by_slug(db, noti_slug)
+    trans_type = models.TransportChannel.get_channel_by_slug(db, trans_slug)
+    
+    if noti_type is None:
+        return False, f"Notification Type: {noti_slug} doesn't Exist"
+    
+    if trans_type is None:
+        return False, f"Transport Channel: {trans_slug} doesn't Exist"
+    
+    return True, [trans_type, noti_type]
+
+def get_variables(db, noti_slug):
+    variable = []
+    
+    noti_variable = models.NotificationVariables.get_notification_variable_by_slug(
+        db, noti_slug)
+    if noti_variable is None:
+        return False, []
+    else:
+        variable_ids = noti_variable.noti_variable
+        variables = retrieve_variables_by_ids(db, variable_ids)
+        variable = list(variables.keys())
+        
+    return True, variable
+
+def check_noti_sample_by_noti_type_tran(db, client_id, noti_type_id, trans_channel_id, noti_state= True):
+    check_noti = models.NotificationSample.check_noti_sample_by_noti_type_tran(
+            db, client_id, noti_type_id, trans_channel_id)
+                                                                                   
+    if check_noti is None:
+        return False, "Notification doesn't exists"
+    
+    if noti_state:
+        if check_noti.client_id != client_id:
+            return False, "Client is not associated with Notification Sample type"
+        # check if the notification is disabled.
+        if not check_noti.notification_state:
+            return False, "Notification Sample is disabled!, Please enable to send"
+
+    return True, check_noti
+
+def get_active_channel_by_client_tran_id(db, client_id, trans_channel_id, check_state=True):
+    check_config = models.ActiveChannelClientConfig.get_active_channel_by_client_tran_id(
+        db, client_id, trans_channel_id).first()
+        
+    if check_config is None:
+        return False, "No Active Transport Configuration has been set."
+    
+    if check_state:
+    # check if it is active or not as well
+        if not check_config.trans_config.transport_state:
+            return False, "Transport Gateway is disabled!"
+        
+    return True, check_config
+
+def transport_config_object(db, client_id, trans_channel_id, trans_method, check_state = True):
+    check_trans_config = models.TransportConfiguration.transport_config_object(
+        db).filter_by(client_id=client_id, trans_channel_id=trans_channel_id, 
+                      trans_method=trans_method).first()
+        
+    if check_trans_config is None:
+        return False, "Transport Configuration type doesn't exist"
+    # check if it's active.
+    if check_state:
+        if not check_trans_config.transport_state:
+            return False, "Transport Configuration is not enabled or active"
+        
+    return True, check_trans_config
+
 
 def create_new_client(db, client_details):
     # first check if the client is already present.
@@ -95,39 +167,30 @@ def create_noti_sample(db, client_id, noti_schema):
     try:
         # get the client_id, and noti_type_id and trans_channel_id
         client = models.Client.get_client_object(db).filter_by(slug=noti_schema.client_slug).first()
-        noti_type = models.NotificationType.get_notification_by_slug(db, noti_schema.noti_type_slug)
-        trans_type = models.TransportChannel.get_channel_by_slug(db, noti_schema.trans_channel_slug)
         
         if client is None:
             return exceptions.bad_request_error("Client with such slug doesn't Exist")
         
-        if noti_type is None:
-            return exceptions.bad_request_error("Notification Type with such slug doesn't Exist")
-        
-        if trans_type is None:
-            return exceptions.bad_request_error("Transport Channel with such slug doesn't Exist")
-        
+        bool_result, trans_data = check_trans_slug(db, noti_schema.trans_channel_slug, noti_schema.noti_type_slug)
+        if not bool_result:
+            return exceptions.bad_request_error(trans_data) 
         # get the ids
-        trans_channel_id = trans_type.id
-        noti_type_id = noti_type.id
+        trans_channel_id = trans_data[0].id
+        noti_type_id = trans_data[1].id
         # Convert the instance to a dictionary
         data_dict = dict(noti_schema)
-
         # Update the dictionary keys to match NotificationDataSchema
         data_dict['client_id'] = client_id
         data_dict['trans_channel_id'] = trans_channel_id
         data_dict['noti_type_id'] = noti_type_id
-        
         # check if it tallies with the new schema.
         noti_schema = NotificationDataSchema(**data_dict)
-
         # first check if the client_id matches with id passed.
         if client_id != client.id:
             return exceptions.bad_request_error("Client ID doesn't match with Authorization ID")
         # check if the notification sample for that client and channel exists.
         check_noti = models.NotificationSample.check_noti_sample_by_noti_type_tran(
             db, client_id, noti_schema.noti_type_id, noti_schema.trans_channel_id)
-        
         if check_noti is not None:
             return exceptions.bad_request_error("Notification Sample for Notification Type already exists!")
         # create the Notification sample.
@@ -162,59 +225,31 @@ def update_noti_sample(db, client_id: int, noti_id: int, update_noti_data):
         return exceptions.server_error(str(e))
     
     return success_response.success_message(update_noti_field, "Notification Sample record was successfully updated")
-
+    
 def send_notification(db, client_id: int, trans_channel_slug: str, sche_variables):
     try:
-         # check if the noti matches the client.
-        noti_type = models.NotificationType.get_notification_by_slug(db, sche_variables.noti_type_slug)
-        trans_type = models.TransportChannel.get_channel_by_slug(db, trans_channel_slug)
-        
-        if noti_type is None:
-            return exceptions.bad_request_error("Notification Type with such slug doesn't Exist")
-        
-        if trans_type is None:
-            return exceptions.bad_request_error("Transport Channel with such slug doesn't Exist")
-        
+        # check if the noti-slug or trans_slug exists
+        # bool result is either True or False, and data is the str or list value.
+        bool_result, trans_data = check_trans_slug(db, trans_channel_slug, sche_variables.noti_type_slug)
+        if not bool_result:
+            return exceptions.bad_request_error(trans_data)
         # get the ids
-        trans_channel_id = trans_type.id
-        noti_type_id = noti_type.id
+        trans_channel_id = trans_data[0].id
+        noti_type_id = trans_data[1].id
         
-        check_noti = models.NotificationSample.check_noti_sample_by_noti_type_tran(
-            db, client_id, noti_type_id, trans_channel_id)
+        bool_result, noti_data = check_noti_sample_by_noti_type_tran(db, client_id, noti_type_id, trans_channel_id)
                                                                                    
-        if check_noti is None:
-            return exceptions.bad_request_error("Notification with such ID doesn't exists")
-        
-        if check_noti.client_id != client_id:
-            return exceptions.bad_request_error("Client ID is not associated with Notification Sample type")
-        
-        # check if the notification is disabled.
-        if not check_noti.notification_state:
-            return exceptions.bad_request_error("Notification Sample is disabled!, Please enable to send")
+        if not bool_result:
+            return exceptions.bad_request_error(noti_data)
         # check if the configuration is active.
-        check_config = models.ActiveChannelClientConfig.get_active_channel_by_client_tran_id(
-            db, client_id, check_noti.trans_channel_id
-        ).first()
+        bool_result, config_data = get_active_channel_by_client_tran_id(db, client_id, noti_data.trans_channel_id)
         
-        if check_config is None:
-            return exceptions.bad_request_error("No Active Transport Configuration has been set.")
-        # check if it is active or not as well
-        if not check_config.trans_config.transport_state:
-            return exceptions.bad_request_error("Transport Gateway is disabled!")
-        
-        # get the variables for the noti type.
-        # get the notification variable.
-        variable = []
-        noti_variable = models.NotificationVariables.get_notification_variable_by_slug(
-            db, sche_variables.noti_type_slug)
-        if noti_variable is None:
-            variable = []
-        else:
-            variable_ids = noti_variable.noti_variable
-            variables = retrieve_variables_by_ids(db, variable_ids)
-            variable = list(variables.keys())
+        if not bool_result:
+            return exceptions.bad_request_error(config_data)
+                # get the notification variable.
+        bool_result, variable = get_variables(db, sche_variables.noti_type_slug)
         # prepare the data;
-        prepared_noti_data = get_noti_data(check_noti, sche_variables, variable)
+        prepared_noti_data = get_noti_data(noti_data, sche_variables, variable)
         # save the data.
         store_noti_data = models.NotificationHistory.create_notification_history(db, prepared_noti_data)
         db.add(store_noti_data)
@@ -230,8 +265,7 @@ def update_noti_history(hist_id, update_data):
         # check if the data exists;
         check_noti_hist = models.NotificationHistory.get_noti_history_by_id(db, hist_id)
         if check_noti_hist is None:
-            return exceptions.bad_request_error("Notification History with such ID doesn't exists")
-        
+            return exceptions.bad_request_error("Notification History with such ID doesn't exists")  
         # proceed to update.
         update_noti_field = models.NotificationHistory.update_notification_history(db, hist_id, update_data)
         if not update_noti_field:
@@ -239,12 +273,10 @@ def update_noti_history(hist_id, update_data):
         # update the data.
         db.add(update_noti_field)
         db.commit()
-        db.refresh(update_noti_field)
-          
+        db.refresh(update_noti_field)          
     except Exception as e:
         return exceptions.server_error(str(e))
-    
-    
+      
 def get_single_notification(db, client_id, noti_id):
     try:
         check_noti = models.NotificationSample.noti_sample_object(db).filter_by(
@@ -273,7 +305,7 @@ def get_all_notification(db, page: int, page_size: int, trans_type, client_id):
         else:
             trans_channel = models.TransportChannel.get_channel_by_slug(db, trans_type.lower().strip())
             if trans_channel is None:
-                return exceptions.bad_request_error("Transport Channel with such slug doesn't Exist")
+                return exceptions.bad_request_error(f"Transport Channel: {trans_type} doesn't Exist")
      
             noti_result = noti_sample.filter_by(client_id=client_id, trans_channel_id=trans_channel.id)
             
@@ -295,14 +327,12 @@ def update_trans_config(db, client_id, trans_channel, trans_type, transport_stat
         
         trans_channel_id = check_channel.id
         # check if the transport method, client_id and trans_channel_id
-        check_trans_config = models.TransportConfiguration.transport_config_object(
-            db).filter_by(client_id=client_id, trans_channel_id=trans_channel_id, 
-                          trans_method=trans_type.trans_type).first()
-        
-        if check_trans_config is None:
-            return exceptions.bad_request_error("Transport Configuration type doesn't exist")
+        bool_result, config_data = transport_config_object(db, client_id, trans_channel_id, 
+                                                           trans_type.trans_type, False)
+        if not bool_result:
+            return exceptions.bad_request_error(config_data)
         # get the id
-        trans_config_id = check_trans_config.id 
+        trans_config_id = config_data.id 
         # update the
         update_trans_config_field = models.TransportConfiguration.update_transport_config(db, trans_config_id, transport_state)
         if not update_trans_config_field:
@@ -326,29 +356,23 @@ def activate_trans_config(db, client_id, trans_channel, trans_type):
         
         trans_channel_id = check_channel.id
         # check if the transport method, client_id and trans_channel_id
-        check_trans_config = models.TransportConfiguration.transport_config_object(
-            db).filter_by(client_id=client_id, trans_channel_id=trans_channel_id, 
-                          trans_method=trans_type.trans_type).first()
+        bool_result, config_data = transport_config_object(db, client_id, trans_channel_id, 
+                                                           trans_type.trans_type)
         
-        if check_trans_config is None:
-            return exceptions.bad_request_error("Transport Configuration type doesn't exist")
-        # check if it's active.
-        if not check_trans_config.transport_state:
-            return exceptions.bad_request_error("Transport Configuration is not enabled or active")
-            
+        if not bool_result:
+            return exceptions.bad_request_error(config_data)     
         # get the id
-        trans_config_id = check_trans_config.id
-        
-        # check if the user exist with same transport type.
-        check_active_config = models.ActiveChannelClientConfig.get_active_channel_by_client_tran_id(
-            db, client_id, trans_channel_id).first()
+        trans_config_id = config_data.id
         
         active_data = {'client_id':client_id, 
                        'trans_channel_id':trans_channel_id, 
                        'trans_config_id': trans_config_id
-                       } 
+                       }
+        # check if the user exist with same transport type.
+        bool_result, _= get_active_channel_by_client_tran_id(
+            db, client_id, trans_channel_id, check_state = False)
         
-        if check_active_config is None:
+        if not bool_result:
             # create the transport.
             active_config = models.ActiveChannelClientConfig.create_active_channel(
                 db, active_data)
@@ -370,20 +394,17 @@ def activate_trans_config(db, client_id, trans_channel, trans_type):
     return success_response.success_message(active_config, "Transport Configuration was successfully activated!")
 
 def validate_config(db, client_id, trans_schema):
-    
     try:
         # get the transport channel id first.
         transport_channel = models.TransportChannel.get_channel_by_slug(db, trans_schema.trans_channel.lower())
         if transport_channel is None:
             return exceptions.bad_request_error(f"Transport channel with name {trans_schema.trans_channel} doesn't exist")
-        
         # check if the transport type exists
         transport_method = models.ChannelTransportType.get_channel_trans_param_by_slug(
             db, trans_schema.trans_type.lower())
         # check if it's not found.
         if transport_method is None:
             return exceptions.bad_request_error(f"Transport method with name {trans_schema.trans_type} doesn't exist")
-        
         # check if the transport config key matches with the the right parameter.
         if set(transport_method.parameters) != set(trans_schema.trans_config.keys()):
             return exceptions.bad_request_error("You have supplied an invalid configuration parameter")
@@ -519,11 +540,10 @@ def get_single_noti_variable(db, noti_slug):
         
         if noti_variable is None:
             return exceptions.bad_request_error(f"Notification Variable for : {noti_slug} doesn't Exist")
-        
         # get the values as dictionary.
         variable_ids = noti_variable.noti_variable
         variables = retrieve_variables_by_ids(db, variable_ids)
-        
+            
     except Exception as e:
         return exceptions.server_error(str(e))
     
