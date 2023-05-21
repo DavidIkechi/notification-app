@@ -6,7 +6,7 @@ A Micro Application that allows Client to send notification (messages) including
 
 **Server:** Python, FastAPI (web framework).
 
-**Database:** MySQL.
+**Database:** MySQL(Production), SQLITE(Test).
 
 **Project Management and Version Control:** BitBucket, Jira, Confluence.
 
