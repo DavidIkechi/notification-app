@@ -153,7 +153,11 @@ def update_client_key(db, client_id, new_key):
 def get_all_clients(db, page: int, page_size: int):
     try:  
         # get the client object for the desired columns.
-        client_object = models.Client.get_client_object(db)
+        client_object = models.Client.get_client_object(db).options(
+            load_only('id'),
+            load_only('slug'),
+            load_only('status')
+        )
         # calculate page offset.
         page_offset = Params(page=page, size=page_size)
 

@@ -54,7 +54,18 @@ def seed_channel_transport(db: Session):
 def seed_client(db: Session):
     from db.models import Client
     client_data = [
-        {'slug': 'client-f','client_key': "new_key"}
+        {'slug': 'client-f','client_key': "new_key"},
+        {'slug': 'client-a','client_key': "new_key2"},
+        {'slug': 'client-b','client_key': "new_key3"},
+        {'slug': 'client-c','client_key': "new_key4"},
+        {'slug': 'client-d','client_key': "new_key5"},
+        {'slug': 'client-e','client_key': "new_key6"},
+        {'slug': 'client-g','client_key': "new_key7"},
+        {'slug': 'client-h','client_key': "new_key8"},
+        {'slug': 'client-i','client_key': "new_key9"},
+        {'slug': 'client-j','client_key': "new_key10"},
+        {'slug': 'client-k','client_key': "new_key11"},
+        {'slug': 'client-l','client_key': "new_key12"}
     ]
     
     if Client.get_client_object(db).count() == 0:
