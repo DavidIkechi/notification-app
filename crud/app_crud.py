@@ -617,7 +617,6 @@ def get_all_histories(db, page, page_size, trans_type, client_id):
         return exceptions.server_error(str(e))
     
     return success_response.success_message(data_result)
-    return success_response.success_message(variables)
 
 def retrieve_variables_by_ids(db: Session, ids: List[int]):
     variables = (
