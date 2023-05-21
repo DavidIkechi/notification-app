@@ -48,7 +48,7 @@ def test_get_single_client(get_session, client_instance):
         "Client-Authorization": "new_key"
     }
     
-    noti_response = client_instance.get("/notification_history/single/1", headers=headers)
+    noti_response = client_instance.get("/history/single/1", headers=headers)
     assert noti_response.status_code == 200
     assert noti_response.json()['data']['sender_id'] == 'nnn'
     assert noti_response.json()['data']['trans_channel_id'] == 1
@@ -73,7 +73,7 @@ def test_resend_noti_history(get_session, client_instance):
     get_noti = NotificationHistory.get_noti_history_by_id(get_session, 1)
     assert get_noti.resend == 0
     # hit the endpoint.
-    noti_response = client_instance.patch('/notification_history/resend/1', headers=headers)
+    noti_response = client_instance.patch('/history/resend/1', headers=headers)
     # force commit
     get_session.commit()
     # check
@@ -97,7 +97,7 @@ def test_get_all_histories(get_session, client_instance):
         "Client-Authorization": "new_key"
     }
     
-    noti_response = client_instance.get('/notification_history/', headers=headers)
+    noti_response = client_instance.get('/history/', headers=headers)
     assert noti_response.status_code == 200
     assert len(noti_response.json()['data']['items']) == 2
     
@@ -121,7 +121,7 @@ def test_get_all_histories_per_transport_type(get_session, client_instance):
         "trans_type": "email"
     }
     
-    noti_response = client_instance.get('/notification_history/', headers=headers, params=params)
+    noti_response = client_instance.get('/history/', headers=headers, params=params)
     assert noti_response.status_code == 200
     assert len(noti_response.json()['data']['items']) == 1
     

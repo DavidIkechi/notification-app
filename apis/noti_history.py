@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 noti_history_router = APIRouter(
-    prefix="/notification_history",
+    prefix="/history",
     tags=["Notification History"],
 )
 
