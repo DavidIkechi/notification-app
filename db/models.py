@@ -75,7 +75,6 @@ class TransportChannel(Base):
     trans_config = relationship('TransportConfiguration', back_populates='trans_channel')
     active_channel_config = relationship('ActiveChannelClientConfig', back_populates='trans_channel')
     noti_history = relationship('NotificationHistory', back_populates='trans_channel')
-
     # start defining the static methods.
     @staticmethod
     def get_transport_channel_object(db: Session):
@@ -386,6 +385,10 @@ class NotificationHistory(Base):
     carbon_copy = Column(JSON, nullable=True, default=[])
     blind_copy = Column(JSON, nullable=True, default=[])
     recipients= Column(JSON, nullable=False)
+    # Newly added columns for resend situations.
+    resend = Column(Integer, default = 0)
+    resend_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    delivered = Column(Integer, default = 0)
 
     # when it was sent.
     message_id = Column(String(255), nullable=True, unique=True)
@@ -427,31 +430,48 @@ class NotificationHistory(Base):
     
     @staticmethod
     def retrieve_noti_histories(db: Session):
-        return NotificationHistory.notification_history_object(db) 
+        return NotificationHistory.notification_history_object(db)
     
-    
-    
-    
+class NotificationVariables(Base):
+    __tablename__ = "notification_variables"
+    id = Column(Integer, primary_key=True, index=True)
+    noti_type = Column(String(100), ForeignKey('notification_type.slug', ondelete='CASCADE'), unique=True)
+    noti_variable = Column(JSON, nullable=False)
         
-
+    # created and updated at.
+    created_at = Column(TIMESTAMP(timezone=True),
+                        default = datetime.utcnow(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        default=datetime.utcnow(), 
+                        onupdate=datetime.utcnow(), nullable=False)
     
+    # static methods
+    @staticmethod
+    def notification_variable_object(db: Session):
+        return db.query(NotificationVariables)
     
-    
-    
-    
-    
-    
-      
-    
+    @staticmethod
+    def get_notification_variable_by_slug(db: Session, noti_type: str):
+        return NotificationVariables.notification_variable_object(
+            db).filter_by(noti_type = noti_type).first()
         
+    @staticmethod
+    def retrieve_notification_variables(db: Session):
+        return NotificationVariables.notification_variable_object(db).all()
     
+class ParentVariables(Base):
+    __tablename__ = 'parent_variables'
+    id = Column(Integer, primary_key=True, index=True)
+    variable_text = Column(String(100), nullable=False, unique=True)
+    replace_text = Column(String(100), nullable=False, unique=True)
     
+    # created and updated at.
+    created_at = Column(TIMESTAMP(timezone=True),
+                        default = datetime.utcnow(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        default=datetime.utcnow(), 
+                        onupdate=datetime.utcnow(), nullable=False)
     
-            
-            
-        
-    
-    
-    
-    
-    
+    @staticmethod
+    def parent_variable_object(db: Session):
+        return db.query(ParentVariables)

@@ -19,7 +19,7 @@ def format_datetime(date_value):
     return formatted_date.strftime("%Y-%m-%d %H:%M:%S.%f")
 
 
-def format_text(body_text: str, data: dict):
+def format_text(body_text: str, data: dict, variable):
     # replace new lines with line breaks, to look like html texts.
     body_text = fr'{body_text}'
     new_text = body_text.replace(r'\n', '<br>')
@@ -29,15 +29,17 @@ def format_text(body_text: str, data: dict):
     # Replace placeholders with values from the dictionary
     formatted_text = new_text
     for placeholder in placeholders:
-        value = data.get(placeholder.strip(), '')
-        formatted_text = formatted_text.replace('{{' + placeholder + '}}', str(value))
+        # only replace when it's present in the list.
+        if placeholder in variable:
+            value = data.get(placeholder.strip(), '')
+            formatted_text = formatted_text.replace('{{' + placeholder + '}}', str(value))
     
     return formatted_text
 
 
-def get_noti_data(noti_sample, schedule_data: dict):
+def get_noti_data(noti_sample, schedule_data: dict, variable):
     mess_body = format_text(noti_sample.message_body, 
-                            schedule_data.noti_variables)
+                            schedule_data.noti_variables, variable)
     
     noti_data ={
         'client_id': noti_sample.client_id,

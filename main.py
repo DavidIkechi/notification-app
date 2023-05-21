@@ -9,7 +9,9 @@ from jobs.job_config import notification_schedule
 from apis.client import client_router
 from apis.notification import notification_router
 from apis.transport_type import trans_config_router
+from apis.noti_variables import noti_variable_router
 from apis.trans_method import trans_type_router
+from apis.noti_history import noti_history_router
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn, asyncio
 import os, uuid, multiprocessing
@@ -18,7 +20,9 @@ from tests.seeder import (
     seed_notification_type,
     seed_channel_transport,
     seed_transport_configuration,
-    seed_active_channel_client_config
+    seed_active_channel_client_config,
+    seed_notification_variable,
+    seed_parent_variables
 )
 
 # Microservice description
@@ -99,14 +103,24 @@ notification_app.include_router(
     trans_type_router
 )
 
+# include the notification variable router.
+notification_app.include_router(
+    noti_variable_router
+)
+
+# include the notification history router.
+notification_app.include_router(
+    noti_history_router
+)
+
 @notification_app.on_event("startup")
 async def startup_event():
     db = Session()
     seed_transport_channel(db)
     seed_notification_type(db)
     seed_channel_transport(db)
-    seed_transport_configuration(db)
-    seed_active_channel_client_config
+    seed_notification_variable(db)
+    seed_parent_variables(db)
     db.close()
     
     
@@ -118,3 +132,6 @@ async def ping():
 if __name__ == "__main__":
     # Run the FastAPI app
     asyncio.run(main())
+    
+    
+
