@@ -67,11 +67,9 @@ alembic upgrade head
 Run RabbitMQ, celery and flower using:
 
 - For RabbitMQ:
-
 ```bash
 Rabbitmq-server start
 ```
-
 For both celery and flower, you need to activate the virtual environment you created initially to run both. It is important to run the celery, however running flower is optional. The essence of flower is to have a graphic display of all tasks. 
 
 - For Celery:
@@ -83,8 +81,8 @@ celery -A celery_config worker -l info --pool=solo
 ```bash
 celery flower -A celery_config --port=port_number
 ```
-8 Finally, you can run your server using:
 
+8 Finally, you can run your server using:
 ```bash
 python main.py
 
