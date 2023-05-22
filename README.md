@@ -1,3 +1,5 @@
+<h1 align="center" style="color:#000">Notification Application</h1>
+
 # Notification Application
 
 A Micro Application that allows Client to send notification (messages) including email and sms to patients (in this context).
