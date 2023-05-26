@@ -50,19 +50,41 @@ or
 pip3 install -r requirements.txt
 ```
 
-5 Run migrations to prepare the models or table to be added to the database, using:
+5 set up the environmment variables. 
+## Environment Variable Setup
+
+Follow these steps to set up the necessary environment variables:
+
+- Create a new file named `.env` in the root directory of the project.
+- Open the `.env` file in a text editor.
+- Add the following variables and their corresponding values:
+
+   ```plaintext
+   DB_NOTI_HOST="server_host_name"
+   DB_NOTI_USER="user_name"
+   DB_NOTI_PASS="password"
+   DB_NOTI_DB="database_name"
+   TESTING=please leave this blank as it is required for testing.
+   NOTI_PORT=port_number
+   RELOAD=True
+   HOST="application ip address e.g 127.0.0.1"
+   ```
+- Save it.
+
+
+6 Run migrations to prepare the models or table to be added to the database, using:
 
 ```bash
 alembic revision --autogenerate -m "migration name"
 ```
 
-6 Migrate your tables to the database, using:
+7 Migrate your tables to the database, using:
 
 ```bash
 alembic upgrade head
 ```
 
-7 install rabbitmq server, to do this, download the executable software from the official 
+8 install rabbitmq server, to do this, download the executable software from the official 
 (https://www.rabbitmq.com/download.html)
 
 Run RabbitMQ, celery and flower using:
@@ -83,13 +105,17 @@ celery -A celery_config worker -l info --pool=solo
 celery flower -A celery_config --port=port_number
 ```
 
-8 Finally, you can run your server using:
+9 Finally, you can run your server using:
 ```bash
 python main.py
 
 or
 
 python3 main.py
+
+or 
+
+pytest (for testing)
 ```
 
 ## Features
