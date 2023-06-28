@@ -2,6 +2,7 @@ from enum import Enum
 from datetime import datetime
 import re
 import datetime as dt
+from datetime import datetime
 
 # for adding utlity functions
 def get_offset(page: int, page_size: int) -> int:
