@@ -20,7 +20,7 @@ To install the project to your local computer or server.
 1 Clone into a directory in your computer using:
 
 ```bash
-git clone git@bitbucket.org:detechnovate/notification-app.git
+git clone https://github.com/DavidIkechi/notification-app.git
 ```
 
 2 change directory to the project folder created after cloning.
